@@ -1,5 +1,5 @@
 import asyncio
-import bot_properties as bp
+import bot_messages as bm
 from datetime import datetime
 
 async def alarm(client):
@@ -17,9 +17,9 @@ async def alarm(client):
         if h == 21 and m == 25:
             await alarmchannel.send("```ギルド討伐5分前！```")
         elif h == 11 and m == 55:
-            msg = "```ワールドボス「" + bp.boss[d][0] + "」出現5分前！```"
+            msg = "```ワールドボス「" + bm.boss[d][0] + "」出現5分前！```"
             await alarmchannel.send(msg)
         elif h == 19 and m == 55:
-            msg = "```ワールドボス「" + bp.boss[d][1] + "」出現5分前！```"
+            msg = "```ワールドボス「" + bm.boss[d][1] + "」出現5分前！```"
             await alarmchannel.send(msg)
         await asyncio.sleep(60)
