@@ -1,5 +1,4 @@
 import random
-import bot_properties as bp
 
 boss = [
     ['クザカ', 'カランダ'],
@@ -49,6 +48,6 @@ def slot_message(message):
 def boss_message():
     msg ="```\n"
     for i in range(0, 7):
-        msg += bp.weekday[i] + " : " + bp.boss[i][0] + " / " + bp.boss[i][1] + "\n"
+        msg += weekday[i] + " : " + boss[i][0] + " / " + boss[i][1] + "\n"
     msg += "```"
     return msg
