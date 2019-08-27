@@ -39,18 +39,15 @@ async def on_message(message):
         msg = bm.boss_message()
         await message.channel.send(msg)
     # 予約
+    elif message.content == '!予約':
+        msg = ba.get_list()
+        await message.channel.send(msg)
+    elif message.content.startswith('!予約削除'):
+        msg = ba.delete_reserve(message)
+        await message.channel.send(msg)
     elif message.content.startswith('!予約'):
-        try:
-            content = message.content.split(" ")
-            if len(content) == 4:
-                minute = int(content[1])
-                second = int(content[2])
-                ba.reserve(minute, second, content[3])
-                await message.channel.send("予約に成功しました。")
-            else:
-                await message.channel.send("予約に失敗しました。ヘルプを参照してください。")
-        except:
-            await message.channel.send("予約に失敗しました。ヘルプを参照してください。")
+        msg = ba.reserve(message)
+        await message.channel.send(msg)
 
 client.loop.create_task(ba.alarm(client)) 
 client.run(bp.bot_token)

@@ -5,8 +5,37 @@ from datetime import datetime
 
 agenda = []
 
-def reserve(minute, second, content):
-    agenda.append((minute, second, content))
+def reserve(message):
+    try:
+        content = message.content.split(" ")
+        if len(content) == 4:
+            minute = int(content[1])
+            second = int(content[2])
+            agenda.append((minute, second, content[3]))
+            return "予約に成功しました。"
+        else:
+            return "予約に失敗しました。ヘルプを参照してください。"
+    except:
+        return "予約に失敗しました。ヘルプを参照してください。"
+
+def get_list():
+    msg = "```\n"
+    for i, a in enumerate(agenda, 1):
+        msg += "{0:2d}) {1:02d}:{2:02d} > {3}\n".format(i, a[0], a[1], a[2])
+    msg += "```"
+    return msg
+
+def delete_reserve(message):
+    try:
+        content = message.content.split(" ")
+        if len(content) == 2:
+            index = int(content[1]) - 1
+            del agenda[index]
+            return "削除に成功しました。"
+        else:
+            return "削除に失敗しました。ヘルプを参照してください。"
+    except:
+        return "削除に失敗しました。ヘルプを参照してください。"
 
 async def alarm(client):
     # クライアントが起動するまで待つ
@@ -29,8 +58,12 @@ async def alarm(client):
             msg = "```ワールドボス「" + bm.boss[d][1] + "」出現5分前！```"
             await alarmchannel.send(msg)
 
-        for r in agenda:
-            if r[0] == h and r[1] == m:
-                await alarmchannel.send(r[2])
+        delete_list = []
+        for a in agenda:
+            if a[0] == h and a[1] == m:
+                await alarmchannel.send(a[2])
+                delete_list.append(a)
+        for a in delete_list:
+            agenda.remove(a)
 
         await asyncio.sleep(60)
