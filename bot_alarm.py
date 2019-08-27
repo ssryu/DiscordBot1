@@ -1,6 +1,12 @@
 import asyncio
-import bot_messages as bm
+import bot_messages   as bm
+import bot_properties as bp
 from datetime import datetime
+
+agenda = []
+
+def reserve(minute, second, content):
+    agenda.append((minute, second, content))
 
 async def alarm(client):
     # クライアントが起動するまで待つ
@@ -22,4 +28,9 @@ async def alarm(client):
         elif h == 19 and m == 55:
             msg = "```ワールドボス「" + bm.boss[d][1] + "」出現5分前！```"
             await alarmchannel.send(msg)
+
+        for r in agenda:
+            if r[0] == h and r[1] == m:
+                await alarmchannel.send(r[2])
+
         await asyncio.sleep(60)
