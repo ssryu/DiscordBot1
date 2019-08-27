@@ -38,13 +38,9 @@ def slot_message(message):
     slot3 = random.sample(slot_list, 3)
 
     msg = "```" + message.author.name + "さんが回しました！\n"
-    msg += "┏━━━━━┳━━━━━┳━━━━━┓\n"
     msg += "┃  " + slot1[0] + "  ┃  " + slot2[0] + "  ┃  " + slot3[0] + "  ┃\n"
-    msg += "┣━━━━━╋━━━━━╋━━━━━┫\n"
     msg += "┃  " + slot1[1] + "  ┃  " + slot2[1] + "  ┃  " + slot3[1] + "  ┃\n"
-    msg += "┣━━━━━╋━━━━━╋━━━━━┫\n"
     msg += "┃  " + slot1[2] + "  ┃  " + slot2[2] + "  ┃  " + slot3[2] + "  ┃\n"
-    msg += "┗━━━━━┻━━━━━┻━━━━━┛\n"
     msg += "```"
     return msg
 
