@@ -24,12 +24,14 @@ def help_message():
     return msg
 
 def dice_message(message):
-    randomcase = random.randint(1, 2)
+    randomcase = random.randint(1, 3)
     dice = random.randint(1, 100)
     if randomcase == 1:
         msg = "```" + message.author.name + "さんのサイコロ結果 : " + str(dice) + "```"
     elif randomcase == 2:
         msg = "```" + message.author.name + "さんがサイコロを振りました！ : " + str(dice) + "```"
+    elif randomcase == 3:
+        msg = "```" + message.author.name + "さんが出したサイコロの目は！ : " + str(dice) + "```"
     return msg
 
 def slot_message(message):
