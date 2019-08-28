@@ -3,10 +3,10 @@ import random
 boss = [
     ['クザカ', 'カランダ'],
     ['カランダ', 'ヌーベル、激怒したレッドノーズ'],
-    ['ヌーベル', 'クザカ、激怒したレッドノーズ'],
+    ['ヌーベル', 'クザカ'],
     ['クザカ', 'カランダ'],
     ['カランダ', 'ヌーベル'],
-    ['クザカ', 'ヌーベル、激怒したレッドノーズ'],
+    ['ヌーベル', 'クザカ'],
     ['カランダ', 'ヌーベル'],
 ]
 weekday = ['月', '火', '水', '木', '金', '土', '日']
@@ -35,16 +35,22 @@ def dice_message(message):
     return msg
 
 def slot_message(message):
-    slot_list = ['1', '2', '3', '4', '5', '6', '7']
+    slot_list = [':cherries:', ':bell:', ':rofl:', ':cat:', ':frog:', ':gem:', ':slot_machine:']
     slot1 = random.sample(slot_list, 3)
     slot2 = random.sample(slot_list, 3)
     slot3 = random.sample(slot_list, 3)
 
-    msg = "```" + message.author.name + "さんが回しました！\n"
+    randomcase = random.randint(1, 3)
+    if randomcase == 1:
+        msg = message.author.name + "さんが回しました！\n"
+    elif randomcase == 2:
+        msg = message.author.name + "の渾身のスロット！\n"
+    elif randomcase == 3:
+        msg = message.author.name + "選手！回しましたッ\n"
+
     msg += "┃  " + slot1[0] + "  ┃  " + slot2[0] + "  ┃  " + slot3[0] + "  ┃\n"
     msg += "┃  " + slot1[1] + "  ┃  " + slot2[1] + "  ┃  " + slot3[1] + "  ┃\n"
     msg += "┃  " + slot1[2] + "  ┃  " + slot2[2] + "  ┃  " + slot3[2] + "  ┃\n"
-    msg += "```"
     return msg
 
 def boss_message():
