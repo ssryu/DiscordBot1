@@ -24,18 +24,16 @@ async def on_message(message):
         msg = bm.help_message()
         await message.channel.send(msg)
     # サイコロ1~100
-    elif message.content == 'サイコロ'\
-    or message.content == 'さいころ':
-        msg = bm.dice_message(message)
-        await message.channel.send(msg)
+    elif message.content.startswith('サイコロ')\
+      or message.content.startswith('さいころ'):
+        await bm.dice_message(message)
     # スロット
-    elif message.content == 'スロット'\
-    or message.content == 'すろっと':
-        msg = bm.slot_message(message)
-        await message.channel.send(msg)
+    elif message.content.startswith('スロット')\
+      or message.content.startswith('すろっと'):
+        await bm.slot_message(message)
     # ボス案内
     elif message.content == 'ボス'\
-    or message.content == 'ぼす':
+      or message.content == 'ぼす':
         msg = bm.boss_message()
         await message.channel.send(msg)
     # 予約
