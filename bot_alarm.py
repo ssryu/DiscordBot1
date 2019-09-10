@@ -58,8 +58,6 @@ async def alarm(client):
             msg = "```ワールドボス「" + bm.boss[d][1] + "」出現5分前！```"
             await alarmchannel.send(msg)
         elif h == 19 and m == 40:
-            msg = "```【9/6〜9/9 限定イベント】\nシャカトゥの黄金像出現10分前！！```"
-            await alarmchannel.send(msg)
 
 
         delete_list = []
