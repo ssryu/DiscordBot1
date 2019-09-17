@@ -57,8 +57,6 @@ async def alarm(client):
         elif h == 19 and m == 55:
             msg = "```ワールドボス「" + bm.boss[d][1] + "」出現5分前！```"
             await alarmchannel.send(msg)
-        elif h == 19 and m == 40:
-
 
         delete_list = []
         for a in agenda:
