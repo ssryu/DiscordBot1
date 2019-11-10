@@ -9,31 +9,33 @@ import bot_properties as bp
 
 client = discord.Client()
 
+
 @client.event
 async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
-    print('-'*20)
+    print('-' * 20)
+
 
 @client.event
 async def on_message(message):
     # ヘルプ表示
-    if message.content == 'ヘルプ'\
-    or message.content == 'へるぷ':
+    if message.content == 'ヘルプ' \
+            or message.content == 'へるぷ':
         msg = bm.help_message()
         await message.channel.send(msg)
     # サイコロ1~100
-    elif message.content.startswith('サイコロ')\
-      or message.content.startswith('さいころ'):
+    elif message.content.startswith('サイコロ') \
+            or message.content.startswith('さいころ'):
         await bm.dice_message(message)
     # スロット
-    elif message.content.startswith('スロット')\
-      or message.content.startswith('すろっと'):
+    elif message.content.startswith('スロット') \
+            or message.content.startswith('すろっと'):
         await bm.slot_message(message)
     # ボス案内
-    elif message.content == 'ボス'\
-      or message.content == 'ぼす':
+    elif message.content == 'ボス' \
+            or message.content == 'ぼす':
         msg = bm.boss_message()
         await message.channel.send(msg)
     # 予約
@@ -47,5 +49,6 @@ async def on_message(message):
         msg = ba.reserve(message)
         await message.channel.send(msg)
 
-client.loop.create_task(ba.alarm(client)) 
+
+client.loop.create_task(ba.alarm(client))
 client.run(bp.bot_token)
