@@ -1,4 +1,3 @@
-import asyncio
 import random
 
 boss = [
@@ -12,6 +11,7 @@ boss = [
 ]
 weekday = ['月', '火', '水', '木', '金', '土', '日']
 
+
 def help_message():
     msg = "```\n"
     msg += "※ひらがなにも対応しています\n"
@@ -24,6 +24,7 @@ def help_message():
     msg += "```"
     return msg
 
+
 async def dice_message(message):
     randomcase = random.randint(1, 3)
     dice = random.randint(1, 100)
@@ -35,6 +36,7 @@ async def dice_message(message):
         msg = "```" + message.author.name + "さんが出したサイコロの目は！ : " + str(dice) + "```"
     await message.channel.send(msg)
 
+
 async def slot_message(message):
     # 回数指定
     repeat = 1
@@ -44,7 +46,7 @@ async def slot_message(message):
             repeat = int(content[1])
             if repeat > 10:
                 repeat = 10
-        elif len(content) ==1:
+        elif len(content) == 1:
             pass
         else:
             return
@@ -55,7 +57,7 @@ async def slot_message(message):
     slot_list = [':cherries:', ':bell:', ':rofl:', ':cat:', ':frog:', ':gem:', ':slot_machine:']
     count = 0
     msg = ""
-    for i in range(1, repeat+1):
+    for i in range(1, repeat + 1):
         slot1 = random.sample(slot_list, 3)
         slot2 = random.sample(slot_list, 3)
         slot3 = random.sample(slot_list, 3)
@@ -75,18 +77,19 @@ async def slot_message(message):
         msg += "┃  " + slot1[2] + "  ┃  " + slot2[2] + "  ┃  " + slot3[2] + "  ┃\n"
 
         # 揃ったかチェック
-        if slot1[0] == slot2[0] == slot3[0]\
-        or slot1[1] == slot2[1] == slot3[1]\
-        or slot1[2] == slot2[2] == slot3[2]\
-        or slot1[0] == slot2[1] == slot3[2]\
-        or slot1[2] == slot2[1] == slot3[0]:
+        if slot1[0] == slot2[0] == slot3[0] \
+                or slot1[1] == slot2[1] == slot3[1] \
+                or slot1[2] == slot2[2] == slot3[2] \
+                or slot1[0] == slot2[1] == slot3[2] \
+                or slot1[2] == slot2[1] == slot3[0]:
             count += 1
 
     msg += "揃った回数 : {0} / {1}".format(count, repeat)
     await message.channel.send(msg)
 
+
 def boss_message():
-    msg ="```\n"
+    msg = "```\n"
     for i in range(0, 7):
         msg += weekday[i] + " : " + boss[i][0] + " / " + boss[i][1] + "\n"
     msg += "```"

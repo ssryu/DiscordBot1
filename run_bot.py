@@ -1,10 +1,7 @@
-import asyncio
 import discord
-import random
-from datetime import datetime
 
-import bot_alarm      as ba
-import bot_messages   as bm
+import bot_alarm as ba
+import bot_messages as bm
 import bot_properties as bp
 
 client = discord.Client()
