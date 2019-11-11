@@ -8,7 +8,6 @@ services:
   bot:
     container_name: bot
     build:
-      context: ./
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     environment:
       TOKEN: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
