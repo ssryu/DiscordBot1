@@ -1,9 +1,10 @@
 import asyncio
-import bot_messages   as bm
+import bot_messages as bm
 import bot_properties as bp
 from datetime import datetime
 
 agenda = []
+
 
 def reserve(message):
     try:
@@ -18,12 +19,14 @@ def reserve(message):
     except:
         return "予約に失敗しました。ヘルプを参照してください。"
 
+
 def get_list():
     msg = "```\n"
     for i, a in enumerate(agenda, 1):
         msg += "{0:2d}) {1:02d}:{2:02d} > {3}\n".format(i, a[0], a[1], a[2])
     msg += "```"
     return msg
+
 
 def delete_reserve(message):
     try:
@@ -34,8 +37,9 @@ def delete_reserve(message):
             return "削除に成功しました。"
         else:
             return "削除に失敗しました。ヘルプを参照してください。"
-    except:
+    except Exception:
         return "削除に失敗しました。ヘルプを参照してください。"
+
 
 async def alarm(client):
     # クライアントが起動するまで待つ

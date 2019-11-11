@@ -1,0 +1,6 @@
+.git/
+.gitattributes
+.gitignore
+docker-compose.yml
+heroku.yml
+README.md
