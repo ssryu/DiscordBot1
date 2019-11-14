@@ -1,16 +1,6 @@
 import random
-
-boss = [
-    ['クザカ', 'カランダ'],
-    ['カランダ', 'ヌーベル、激怒したレッドノーズ'],
-    ['ヌーベル', 'クザカ'],
-    ['クザカ', 'カランダ'],
-    ['カランダ', 'ヌーベル'],
-    ['ヌーベル', 'クザカ、激怒したギアス'],
-    ['カランダ', 'ヌーベル'],
-]
-weekday = ['月', '火', '水', '木', '金', '土', '日']
-
+import bot_properties as bp
+from boss_schedule import GoogleCalendar
 
 def help_message():
     msg = "```\n"
@@ -90,7 +80,9 @@ async def slot_message(message):
 
 def boss_message():
     msg = "```\n"
-    for i in range(0, 7):
-        msg += weekday[i] + " : " + boss[i][0] + " / " + boss[i][1] + "\n"
+
+    gc = GoogleCalendar(bp.boss_calendar_google_service_account_id, bp.boss_calendar_id)
+    msg += '\n'.join(gc.one_week_boss_schedule_messages())
+
     msg += "```"
     return msg
