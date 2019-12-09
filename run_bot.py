@@ -1,27 +1,22 @@
 import logging
 
-import discord
 from discord.ext import commands
 
-import bot_alarm as ba
-import bot_messages as bm
 import bot_properties as bp
 
-logging.basicConfig()  # 最初に呼び出しが必要(注釈も参考のこと)。 defaultはlevel=logging.WARNING
-console = logging.StreamHandler()
-console_formatter = logging.Formatter("%(relativeCreated)07d[ms] : %(name)s : %(message)s")
-console.setFormatter(console_formatter)
-# sys.stderrにはざっくりとしたerror情報で良いので、INFOとする
-console.setLevel(logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(relativeCreated)07d[ms] : %(name)s : %(message)s"))
+logger.addHandler(handler)
 
 bot = commands.Bot(command_prefix='')
-
 bot.load_extension('cogs.Help')
 bot.load_extension('cogs.DiceGame')
 bot.load_extension('cogs.SlotGame')
 bot.load_extension('cogs.BossSchedule')
 bot.load_extension('cogs.MemberStatus')
-
 bot.run(bp.bot_token)
 
 #
