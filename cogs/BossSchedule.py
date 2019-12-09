@@ -1,33 +1,46 @@
+import discord
+from discord.ext import commands
+
 import logging
 import sys
 import traceback
 from datetime import datetime, timezone, timedelta
 from apiclient import discovery
 from google.oauth2 import service_account
-from httplib2 import Http
+import bot_properties as bp
 
 logger = logging.getLogger(__name__)
 
-class GoogleCalendar(object):
-    def __init__(self, calendar_id):
-        self.calendar_id = calendar_id
-        pass
 
-    def get_credentials(self):
+class BossSchedule(commands.Cog):
+    def __init__(self, bot, calendar_id):
+        self.bot = bot
+        self.calendar_id = calendar_id
+
+    @commands.command(name='ボス')
+    async def boss_message(self, ctx, *, member: discord.Member = None):
+        msg = "```\n"
+        msg += '\n'.join(self.one_week_boss_schedule_messages())
+        msg += "```"
+        await ctx.channel.send(msg)
+
+    @staticmethod
+    def get_credentials():
         client_secret_file = 'client_secret.json'
+
         scope = [
             'https://www.googleapis.com/auth/calendar'
         ]
+
         credentials = service_account.Credentials.from_service_account_file(client_secret_file, scopes=scope)
+
         return credentials
 
     def get_schedule(self, calendar_id, time_min, time_max):
         try:
             credentials = self.get_credentials()
 
-            service = discovery.build('calendar', 'v3',
-                                      credentials=credentials,
-                                      cache_discovery=False)
+            service = discovery.build('calendar', 'v3', credentials=credentials, cache_discovery=False)
 
             events = service.events().list(
                 calendarId=calendar_id,
@@ -66,6 +79,5 @@ class GoogleCalendar(object):
         return [v + ' : ' + ' / '.join([x[0] for x in sorted_schedules if x[1] == i]) for i, v in enumerate(weekday)]
 
 
-if __name__ == '__main__':
-    gc = GoogleCalendar()
-    print(gc.one_week_boss_schedule_messages())
+def setup(bot):
+    bot.add_cog(BossSchedule(bot, bp.boss_calendar_id))
