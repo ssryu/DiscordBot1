@@ -1,8 +1,5 @@
 import random
 import bot_properties as bp
-from boss_schedule import GoogleCalendar
-from membersheet import MemberSheet
-
 
 # def help_message():
 #     msg = "```\n"
@@ -90,12 +87,3 @@ from membersheet import MemberSheet
 #     msg += "```"
 #     return msg
 
-
-def my_combat_point():
-    msg = "```\n"
-
-    member_sheet = MemberSheet()
-    msg += '\n'.join(member_sheet.get_my_combat_point())
-
-    msg += "```"
-    return msg

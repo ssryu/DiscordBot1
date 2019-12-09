@@ -14,16 +14,15 @@ console.setFormatter(console_formatter)
 # sys.stderrにはざっくりとしたerror情報で良いので、INFOとする
 console.setLevel(logging.INFO)
 
-#client = discord.Client()
+bot = commands.Bot(command_prefix='')
 
-client = commands.Bot(command_prefix='')
+bot.load_extension('cogs.Help')
+bot.load_extension('cogs.DiceGame')
+bot.load_extension('cogs.SlotGame')
+bot.load_extension('cogs.BossSchedule')
+bot.load_extension('cogs.MemberStatus')
 
-client.load_extension('cogs.Help')
-client.load_extension('cogs.DiceGame')
-client.load_extension('cogs.SlotGame')
-client.load_extension('cogs.BossSchedule')
-
-client.run(bp.bot_token)
+bot.run(bp.bot_token)
 
 #
 # @client.event
