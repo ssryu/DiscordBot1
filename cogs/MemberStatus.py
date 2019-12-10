@@ -55,7 +55,7 @@ class MemberStatus(commands.Cog):
         cp_range_name = f"メンバー情報一覧!I{member_index + 1}"
         result = service.spreadsheets().values().update(spreadsheetId=spreadsheet_id,
                                                         range=cp_range_name,
-                                                        valueInputOption='RAW',
+                                                        valueInputOption='USER_ENTERED',
                                                         body=body).execute()
 
         msg = f"{username} さんの戦闘力を {cp} に更新しました〜！"
