@@ -17,6 +17,7 @@ bot.load_extension('cogs.DiceGame')
 bot.load_extension('cogs.SlotGame')
 bot.load_extension('cogs.BossSchedule')
 bot.load_extension('cogs.MemberStatus')
+bot.load_extension('cogs.Yomiage')
 bot.run(bp.bot_token)
 
 #
