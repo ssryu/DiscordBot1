@@ -31,7 +31,6 @@ class Yomiage(commands.Cog):
             await ctx.channel.send('VCに繋いでないよっ！')
         else:
             await self.vc.disconnect()
-
             self.vc = None
             self.yomiage_ch = None
             await ctx.channel.send('またねっ！')
@@ -49,6 +48,38 @@ class Yomiage(commands.Cog):
             except:
                 # an error happened sending the message
                 pass
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        logger.info(member.name)
+        logger.info(before)
+        logger.info(after)
+        if member == self.bot.user:
+            return
+
+        if before is None:
+            return
+
+        if before.channel is None:
+            if after.channel is not None:
+                if self.vc is not None:
+                    input_text = f'<speak>{member.name}さん やっほー！</speak>'
+
+                    client = texttospeech.TextToSpeechClient()
+                    synthesis_input = texttospeech.types.SynthesisInput(ssml=input_text)
+
+                    voice = texttospeech.types.VoiceSelectionParams(
+                        language_code='ja-JP',
+                        ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE)
+
+                    audio_config = texttospeech.types.AudioConfig(
+                        audio_encoding=texttospeech.enums.AudioEncoding.MP3)
+
+                    response = client.synthesize_speech(synthesis_input, voice, audio_config)
+
+                    with open('comming.mp3', 'wb') as out:
+                        out.write(response.audio_content)
+                        self.vc.play(discord.FFmpegPCMAudio('comming.mp3'), after=self.my_after)
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
