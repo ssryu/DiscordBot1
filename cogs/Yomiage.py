@@ -87,27 +87,28 @@ class Yomiage(commands.Cog):
         if ctx.author == self.bot.user:
             return
 
-        input_text = f'<speak>{ctx.author.name}<break time="300ms"/>{ctx.content}</speak>'
-        logger.info(input_text)
+        if self.vc is not None:
+            input_text = f'<speak>{ctx.author.name}<break time="300ms"/>{ctx.content}</speak>'
+            logger.info(input_text)
 
-        client = texttospeech.TextToSpeechClient()
-        synthesis_input = texttospeech.types.SynthesisInput(ssml=input_text)
+            client = texttospeech.TextToSpeechClient()
+            synthesis_input = texttospeech.types.SynthesisInput(ssml=input_text)
 
-        voice = texttospeech.types.VoiceSelectionParams(
-            language_code='ja-JP',
-            ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE)
+            voice = texttospeech.types.VoiceSelectionParams(
+                language_code='ja-JP',
+                ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE)
 
-        audio_config = texttospeech.types.AudioConfig(
-            audio_encoding=texttospeech.enums.AudioEncoding.MP3)
+            audio_config = texttospeech.types.AudioConfig(
+                audio_encoding=texttospeech.enums.AudioEncoding.MP3)
 
-        response = client.synthesize_speech(synthesis_input, voice, audio_config)
+            response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
-        with open('output.mp3', 'wb') as out:
-            # Write the response to the output file.
-            out.write(response.audio_content)
-            logger.info('Audio content written to file "output.mp3"')
+            with open('output.mp3', 'wb') as out:
+                # Write the response to the output file.
+                out.write(response.audio_content)
+                logger.info('Audio content written to file "output.mp3"')
 
-            self.vc.play(discord.FFmpegPCMAudio('output.mp3'), after=self.my_after)
+                self.vc.play(discord.FFmpegPCMAudio('output.mp3'), after=self.my_after)
         return
 
 
