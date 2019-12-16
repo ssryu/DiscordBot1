@@ -1,12 +1,15 @@
-import discord
-from discord.ext import commands
-
+import json
 import logging
+import os
 import sys
 import traceback
 from datetime import datetime, timezone, timedelta
+
+import discord
 from apiclient import discovery
+from discord.ext import commands
 from google.oauth2 import service_account
+
 import bot_properties as bp
 
 logger = logging.getLogger(__name__)
@@ -26,13 +29,12 @@ class BossSchedule(commands.Cog):
 
     @staticmethod
     def get_credentials():
-        client_secret_file = 'client_secret.json'
-
         scope = [
             'https://www.googleapis.com/auth/calendar'
         ]
 
-        credentials = service_account.Credentials.from_service_account_file(client_secret_file, scopes=scope)
+        service_account_info = json.loads(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+        credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scope)
 
         return credentials
 

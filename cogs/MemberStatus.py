@@ -1,7 +1,10 @@
+import json
 import logging
+import os
+
 import discord
-from discord.ext import commands
 import googleapiclient.discovery
+from discord.ext import commands
 from google.oauth2 import service_account
 
 logger = logging.getLogger(__name__)
@@ -18,6 +21,11 @@ class MemberStatus(commands.Cog):
         msg += '\n'.join(self.get_my_status(ctx.author.name, ctx.author.discriminator))
         msg += "```"
         await ctx.channel.send(msg)
+
+    @commands.command(name='職変更')
+    async def update_job(self, ctx, job_name):
+        """職変更 アークメイジ"""
+        pass
 
     @commands.command(name='戦闘力更新')
     async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
@@ -63,11 +71,13 @@ class MemberStatus(commands.Cog):
 
     @staticmethod
     def get_credentials():
-        client_secret_file = 'client_secret.json'
         scopes = [
             'https://www.googleapis.com/auth/spreadsheets'
         ]
-        credentials = service_account.Credentials.from_service_account_file(client_secret_file, scopes=scopes)
+
+        service_account_info = json.loads(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+        credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scopes)
+
         return credentials
 
     def get_my_status(self, username, discriminator):

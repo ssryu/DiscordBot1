@@ -19,6 +19,8 @@
 
 ## Python
 
+`$ brew install postgresql`
+
 `$ pip install -r requirements.txt`
 
 `$ export TOKEN=<< DISCORD BOT TOKEN >>`
