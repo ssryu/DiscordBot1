@@ -2,6 +2,8 @@ FROM python:3
 
 WORKDIR /usr/src/app
 
+ENV GOOGLE_APPLICATION_CREDENTIALS google-credentials.json
+
 RUN apt-get update && apt-get install -y ffmpeg
 
 COPY requirements.txt ./
