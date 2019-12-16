@@ -7,6 +7,7 @@ import queue
 import discord
 from discord.ext import tasks, commands
 
+from google.auth import compute_engine
 from google.cloud import texttospeech
 
 logger = logging.getLogger(__name__)
@@ -98,7 +99,10 @@ class Yomiage(commands.Cog):
     @staticmethod
     def create_voice(ssml):
         """ Google Cloud Text-to-Speech を利用してssmlから音声ファイルを生成する """
-        client = texttospeech.TextToSpeechClient()
+        credentials = compute_engine.Credentials()
+
+        client = texttospeech.TextToSpeechClient(credentials=credentials)
+
         synthesis_input = texttospeech.types.SynthesisInput(ssml=ssml)
 
         voice = texttospeech.types.VoiceSelectionParams(
