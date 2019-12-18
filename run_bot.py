@@ -1,4 +1,5 @@
 import logging
+import os
 
 from discord.ext import commands
 
@@ -10,6 +11,9 @@ logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(relativeCreated)07d[ms] : %(name)s : %(message)s"))
 logger.addHandler(handler)
+
+app_credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+logger.info(app_credentials_path)
 
 bot = commands.Bot(command_prefix='')
 bot.load_extension('cogs.Help')
