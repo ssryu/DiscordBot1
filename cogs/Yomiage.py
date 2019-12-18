@@ -99,9 +99,7 @@ class Yomiage(commands.Cog):
     @staticmethod
     def create_voice(ssml):
         """ Google Cloud Text-to-Speech を利用してssmlから音声ファイルを生成する """
-        credentials = compute_engine.Credentials()
-
-        client = texttospeech.TextToSpeechClient(credentials=credentials)
+        client = texttospeech.TextToSpeechClient()
 
         synthesis_input = texttospeech.types.SynthesisInput(ssml=ssml)
 

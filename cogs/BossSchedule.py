@@ -32,9 +32,8 @@ class BossSchedule(commands.Cog):
         scope = [
             'https://www.googleapis.com/auth/calendar'
         ]
-
-        service_account_info = json.loads(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
-        credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scope)
+        path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        credentials = service_account.Credentials.from_service_account_file(path, scopes=scope)
 
         return credentials
 
