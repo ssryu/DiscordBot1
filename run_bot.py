@@ -16,7 +16,7 @@ logger.addHandler(handler)
 app_credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 base64_credentials = os.environ.get('GOOGLE_CREDENTIALS')
 with open(app_credentials_path, 'wb') as out:
-    json_str = base64.b16decode(base64_credentials.encode('utf-8'))
+    json_str = base64.b64decode(base64_credentials.encode('utf-8'))
     out.write(json_str)
     logger.info(json_str)
 
