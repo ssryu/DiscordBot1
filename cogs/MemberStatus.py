@@ -14,6 +14,7 @@ class MemberStatus(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
 
     @commands.command(name='ステータス')
     async def show_my_status(self, ctx, *, member: discord.Member = None):
@@ -22,31 +23,75 @@ class MemberStatus(commands.Cog):
         msg += "```"
         await ctx.channel.send(msg)
 
+    def get_job_list(self):
+        range_name = '職名リスト(新規職が追加されたら編集)!A:A'
+        service = self.get_spreadsheet_service()
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=self.spreadsheet_id,
+                                    majorDimension='COLUMNS',
+                                    range=range_name).execute()
+        values = result.get('values', [])
+        return values[0]
+
     @commands.command(name='職変更')
     async def update_job(self, ctx, job_name):
         """職変更 アークメイジ"""
-        pass
+        job_list = self.get_job_list()
 
-    @commands.command(name='戦闘力更新')
-    async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
-        username = ctx.author.name
-        discriminator = ctx.author.discriminator
-        user_key = f"{username}#{discriminator}"
-        logger.info(user_key)
+        if job_name not in job_list:
+            await ctx.channel.send(f'{job_name} という職はしらないなぁ！')
+            return
 
-        spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
-        range_name = 'メンバー情報一覧!A1:P'
+        search_key = self.create_search_key(ctx.author.name, ctx.author.discriminator)
 
+        values = self.get_member_list()
+        status = [x for x in values if x[10] == search_key][0]
+
+        member_index = values.index(status)
+        update_values = [
+            [
+                job_name
+            ]
+        ]
+        body = {
+            'values': update_values
+        }
+        cp_range_name = f"メンバー情報一覧!H{member_index + 1}"
+        service = self.get_spreadsheet_service()
+        result = service.spreadsheets().values().update(spreadsheetId=self.spreadsheet_id,
+                                                        range=cp_range_name,
+                                                        valueInputOption='USER_ENTERED',
+                                                        body=body).execute()
+        logging.info(result)
+        msg = f"{ctx.author.name} さんの職業を {job_name} に更新しました〜！"
+        await ctx.channel.send(msg)
+
+    def get_spreadsheet_service(self):
         credentials = self.get_credentials()
         service = googleapiclient.discovery.build('sheets', 'v4',
                                                   credentials=credentials,
                                                   cache_discovery=False)
+        return service
 
+    def get_member_list(self):
+        range_name = 'メンバー情報一覧!A1:P'
+
+        service = self.get_spreadsheet_service()
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id,
+        result = sheet.values().get(spreadsheetId=self.spreadsheet_id,
                                     range=range_name).execute()
         values = result.get('values', [])
+        return values
 
+    def create_search_key(self, name, discriminator):
+        return f"{name}#{discriminator}"
+
+    @commands.command(name='戦闘力更新')
+    async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
+        user_key = self.create_search_key(ctx.author.name, ctx.author.discriminator)
+        logger.info(user_key)
+
+        values = self.get_member_list()
         status = [x for x in values if x[10] == user_key][0]
         logger.info(values.index(status))
         logger.info(values[26])
@@ -61,12 +106,13 @@ class MemberStatus(commands.Cog):
             'values': update_values
         }
         cp_range_name = f"メンバー情報一覧!I{member_index + 1}"
-        result = service.spreadsheets().values().update(spreadsheetId=spreadsheet_id,
+        service = self.get_spreadsheet_service()
+        result = service.spreadsheets().values().update(spreadsheetId=self.spreadsheet_id,
                                                         range=cp_range_name,
                                                         valueInputOption='USER_ENTERED',
                                                         body=body).execute()
 
-        msg = f"{username} さんの戦闘力を {cp} に更新しました〜！"
+        msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
 
     @staticmethod
@@ -82,18 +128,7 @@ class MemberStatus(commands.Cog):
         user_key = f"{username}#{discriminator}"
         logger.info(user_key)
 
-        spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
-        range_name = 'メンバー情報一覧!A1:P'
-
-        credentials = self.get_credentials()
-        service = googleapiclient.discovery.build('sheets', 'v4',
-                                                  credentials=credentials,
-                                                  cache_discovery=False)
-
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=spreadsheet_id,
-                                    range=range_name).execute()
-        values = result.get('values', [])
+        values = self.get_member_list()
 
         status = [x for x in values if x[10] == user_key][0]
         logger.info(status)
