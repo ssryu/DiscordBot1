@@ -37,9 +37,8 @@ class MemberStatus(commands.Cog):
         spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
         range_name = 'メンバー情報一覧!A1:P'
 
-        credentials = self.get_credentials()
+        # credentials = self.get_credentials()
         service = googleapiclient.discovery.build('sheets', 'v4',
-                                                  credentials=credentials,
                                                   cache_discovery=False)
 
         sheet = service.spreadsheets()
@@ -69,16 +68,13 @@ class MemberStatus(commands.Cog):
         msg = f"{username} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
 
-    @staticmethod
-    def get_credentials():
-        scopes = [
-            'https://www.googleapis.com/auth/spreadsheets'
-        ]
-
-        service_account_info = json.loads(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
-        credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scopes)
-
-        return credentials
+    # @staticmethod
+    # def get_credentials():
+    #     scopes = [
+    #         'https://www.googleapis.com/auth/spreadsheets'
+    #     ]
+    #     credentials = service_account.Credentials.from_service_account_info(, scopes=scopes)
+    #     return credentials
 
     def get_my_status(self, username, discriminator):
         user_key = f"{username}#{discriminator}"
@@ -87,9 +83,8 @@ class MemberStatus(commands.Cog):
         spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
         range_name = 'メンバー情報一覧!A1:P'
 
-        credentials = self.get_credentials()
+        ## credentials = self.get_credentials()
         service = googleapiclient.discovery.build('sheets', 'v4',
-                                                  credentials=credentials,
                                                   cache_discovery=False)
 
         sheet = service.spreadsheets()
