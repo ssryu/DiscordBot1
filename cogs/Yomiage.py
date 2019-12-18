@@ -20,7 +20,6 @@ class Yomiage(commands.Cog):
         self.vc = None
         self.yomiage_ch = None
         self.play_queue = queue.Queue()
-        self.retry_play.start()
 
     @tasks.loop(seconds=1.0)
     async def retry_play(self):
@@ -67,6 +66,8 @@ class Yomiage(commands.Cog):
             self.play_voice('join_voice.m4a')
 
             self.yomiage_ch = ctx.channel
+
+            self.retry_play.start()
             await ctx.channel.send('はーい！')
             return
 
@@ -82,6 +83,8 @@ class Yomiage(commands.Cog):
         await self.vc.disconnect()
         self.vc = None
         self.yomiage_ch = None
+
+        self.retry_play.stop()
         await ctx.channel.send('またねっ！')
 
     @commands.command(name='辞書登録')
@@ -145,6 +148,9 @@ class Yomiage(commands.Cog):
 
         # VCに繋がっていないなら読み上げ処理する必要ないので
         if self.vc is None:
+            return
+
+        if self.yomiage_ch != ctx.channel:
             return
 
         input_text = f'<speak>{ctx.author.name}<break time="300ms"/>{ctx.content}</speak>'
