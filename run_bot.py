@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 
@@ -13,7 +14,11 @@ handler.setFormatter(logging.Formatter("%(relativeCreated)07d[ms] : %(name)s : %
 logger.addHandler(handler)
 
 app_credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-logger.info(app_credentials_path)
+base64_credentials = os.environ.get('GOOGLE_CREDENTIALS')
+with open(app_credentials_path, 'wb') as out:
+    json_str = base64.b64encode(base64_credentials.encode('utf-8'))
+    out.write(json_str)
+    logger.info(json_str)
 
 bot = commands.Bot(command_prefix='')
 bot.load_extension('cogs.Help')
