@@ -18,7 +18,7 @@ class Yomiage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.vc = None
-        self.yomiage_ch = None
+        self.yomiage_channel_name = None
         self.play_queue = queue.Queue()
 
     @tasks.loop(seconds=1.0)
@@ -40,7 +40,8 @@ class Yomiage(commands.Cog):
                 # 再生中の場合は何もせずキューに戻す
                 self.play_queue.put((filename, is_after_remove))
             else:
-                self.vc.play(discord.FFmpegPCMAudio(filename), after=lambda err: self.my_after(err, filename, is_after_remove))
+                self.vc.play(discord.FFmpegPCMAudio(filename),
+                             after=lambda err: self.my_after(err, filename, is_after_remove))
         except discord.ClientException as e:
             logger.info('retry...')
             logger.info(e)
@@ -65,7 +66,7 @@ class Yomiage(commands.Cog):
             # 挨拶メッセージを読み上げる
             self.play_voice('join_voice.m4a')
 
-            self.yomiage_ch = ctx.channel
+            self.yomiage_channel_name = ctx.channel.name
 
             self.retry_play.start()
             await ctx.channel.send('はーい！')
@@ -82,7 +83,7 @@ class Yomiage(commands.Cog):
         # VoiceChannelに接続している場合は接続を切断し、メッセージを返す
         await self.vc.disconnect()
         self.vc = None
-        self.yomiage_ch = None
+        self.yomiage_channel_name = None
 
         self.retry_play.stop()
         await ctx.channel.send('またねっ！')
@@ -118,27 +119,42 @@ class Yomiage(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         """ 新しい人がVCに接続してきたらいらっしゃいメッセージを読み上げる """
-        logger.debug(member.name)
-        logger.debug(before)
-        logger.debug(after)
+        # logger.debug(member.name)
+        # logger.debug(before)
+        # logger.debug(after)
         if member == self.bot.user:
             return
 
         if before is None:
+            logger.info("before is None")
             return
 
-        if before.channel is None:
-            if after.channel is not None:
-                if self.vc is not None:
-                    input_text = f'<speak>{member.name}さん やっほー！</speak>'
+        if after is None:
+            logger.info("after is None")
+            return
 
-                    voice = self.create_voice(input_text)
+        if after.channel is not None:
+            if self.vc is not None:
+                if self.yomiage_channel_name != after.channel.name:
+                    logger.debug(after.channel)
+                    logger.debug(self.yomiage_channel_name)
+                    logger.info("yomiage_channel_name not equal after.channel.name")
+                    return
 
-                    tmp_filename = f'{datetime.datetime.now().timestamp()}.mp3'
+                if before.self_mute != after.self_mute:
+                    # ミュート切り替えには反応しないようにする
+                    logger.info("self_mute changed.")
+                    return
 
-                    with open(tmp_filename, 'wb') as out:
-                        out.write(voice.audio_content)
-                        self.play_voice(tmp_filename, True)
+                input_text = f'<speak>{member.name}さん やっほー！</speak>'
+
+                voice = self.create_voice(input_text)
+
+                tmp_filename = f'{datetime.datetime.now().timestamp()}.mp3'
+
+                with open(tmp_filename, 'wb') as out:
+                    out.write(voice.audio_content)
+                    self.play_voice(tmp_filename, True)
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
@@ -150,7 +166,8 @@ class Yomiage(commands.Cog):
         if self.vc is None:
             return
 
-        if self.yomiage_ch != ctx.channel:
+        # 読み上げ中のチャンネル以外の発言も流れ込んでくるので、それは読み上げない
+        if self.yomiage_channel_name != ctx.channel.name:
             return
 
         input_text = f'<speak>{ctx.author.name}<break time="300ms"/>{ctx.content}</speak>'
