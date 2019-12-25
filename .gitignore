@@ -2,6 +2,7 @@ __pycache__
 *.pyc
 bot.env
 client_secret.json
+google-credentials.json
 output.mp3
 comming.mp3
 
