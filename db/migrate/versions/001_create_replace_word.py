@@ -6,7 +6,7 @@ meta = MetaData()
 table = Table(
     'replace_word', meta,
     Column('id', BIGINT(), primary_key=True),
-    Column('keyword', TEXT, nullable=False),
+    Column('keyword', TEXT, unique=True, nullable=False),
     Column('replace_to', TEXT, nullable=False))
 
 

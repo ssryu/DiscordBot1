@@ -10,6 +10,9 @@ from discord.ext import tasks, commands
 from google.auth import compute_engine
 from google.cloud import texttospeech
 
+from db.session import session
+from db.replace_word import ReplaceWord
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,7 +59,7 @@ class Yomiage(commands.Cog):
 
     @commands.command(name='タチコマァ！ついてこい！')
     async def join_voice_chat(self, ctx):
-        """ VoiceChannelにボットを呼び出す """
+        """ VCにタチコマを呼び出す """
 
         # VCに接続していなければ接続する
         if self.vc is None:
@@ -74,7 +77,7 @@ class Yomiage(commands.Cog):
 
     @commands.command(name='ばいばい')
     async def leave_voice_chat(self, ctx):
-        """ VoiceChannelからボットを退去させる """
+        """ VCからタチコマを切断させる """
         if self.vc is None:
             # VoiceChannelに未接続の場合はメッセージを返すだけ
             await ctx.channel.send('VCに繋いでないよっ！')
@@ -88,10 +91,32 @@ class Yomiage(commands.Cog):
         self.retry_play.stop()
         await ctx.channel.send('またねっ！')
 
+    @commands.command(name='シッ！')
+    async def stop_voice(self, ctx):
+        """ 読み上げを中断させる """
+        await self.vc.stop()
+
     @commands.command(name='辞書登録')
     async def add_dictionary(self, ctx, keyword, replace_word):
         """ 辞書登録 {語句} {読み方} """
-        pass
+        a = ReplaceWord.add(session, keyword, replace_word)
+        await ctx.channel.send(f'{keyword} の読みを {replace_word} で登録しました〜！')
+
+    @commands.command(name='辞書')
+    async def list_dictionary(self, ctx):
+        """ 登録されている読み替え辞書をすべて表示する """
+        words = ReplaceWord.all(session)
+        a = [f'{x.id}: {x.keyword}, {x.replace_to}' for x in words]
+        msg = "```\n"
+        msg += '\n'.join(a)
+        msg += "```"
+        await ctx.channel.send(msg)
+
+    @commands.command(name='辞書削除')
+    async def delete_dictionary(self, ctx, id):
+        """ 辞書削除 {id} """
+        words = ReplaceWord.delete(session, id)
+        await ctx.channel.send(f'ID: {words.id}, keyword: {words.keyword}, replace_to: {words.replace_to} を削除しました〜！')
 
     @staticmethod
     def my_after(error, file, is_after_remove=False):
@@ -146,7 +171,8 @@ class Yomiage(commands.Cog):
                     logger.info("self_mute changed.")
                     return
 
-                input_text = f'<speak>{member.name}さん やっほー！</speak>'
+                member_name = self.convert_replace_dictionary(member.name)
+                input_text = f'<speak>{member_name}さん やっほー！</speak>'
 
                 voice = self.create_voice(input_text)
 
@@ -155,6 +181,15 @@ class Yomiage(commands.Cog):
                 with open(tmp_filename, 'wb') as out:
                     out.write(voice.audio_content)
                     self.play_voice(tmp_filename, True)
+
+    @staticmethod
+    def convert_replace_dictionary(input_text):
+        replace_dictionary = ReplaceWord.all(session)
+
+        for x in replace_dictionary:
+            input_text = input_text.replace(x.keyword, x.replace_to)
+
+        return input_text
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
@@ -170,7 +205,9 @@ class Yomiage(commands.Cog):
         if self.yomiage_channel_name != ctx.channel.name:
             return
 
-        input_text = f'<speak>{ctx.author.name}<break time="300ms"/>{ctx.content}</speak>'
+        name = self.convert_replace_dictionary(ctx.author.name)
+        content = self.convert_replace_dictionary(ctx.content)
+        input_text = f'<speak>{name}<break time="300ms"/>{content}</speak>'
         logger.debug(input_text)
 
         response = self.create_voice(input_text)

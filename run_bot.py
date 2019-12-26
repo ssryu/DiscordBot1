@@ -7,8 +7,6 @@ from discord.ext import commands
 from migrate import DatabaseAlreadyControlledError
 
 import bot_properties as bp
-from db.session import session
-from db.replace_word import ReplaceWord
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -32,9 +30,6 @@ except DatabaseAlreadyControlledError as e:
     logger.info(f'データベースは管理状態です: {current_version}')
 
 migrate.versioning.api.upgrade(os.environ.get('DATABASE_URL'), './db/migrate')
-
-words = ReplaceWord.find(session)
-logger.info([x.keyword for x in words])
 
 bot = commands.Bot(command_prefix='')
 bot.load_extension('cogs.Help')

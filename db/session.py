@@ -15,12 +15,8 @@ engine = create_engine(
 
 session = scoped_session(
     sessionmaker(
-        autocommit=False,
+        autocommit=True,
         autoflush=True,
         bind=engine
     )
 )
-
-Base = automap_base()
-Base.prepare(engine, reflect=True)
-Base.query = session.query_property()
