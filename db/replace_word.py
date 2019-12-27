@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.automap import automap_base
 
 from db.session import engine, session
@@ -24,12 +25,18 @@ class ReplaceWord(Base):
     def add(cls, session, keyword, replace_to):
         tbl = cls.classes.replace_word(keyword=keyword, replace_to=replace_to)
         session.add(tbl)
-        session.commit()
+        try:
+            session.commit()
+        except InvalidRequestError as e:
+            return
 
     @classmethod
     def delete(cls, session, id):
         tbl = cls.classes.replace_word
         target_record = session.query(tbl).filter_by(id=id).first()
         session.delete(target_record)
-        session.commit()
+        try:
+            session.commit()
+        except InvalidRequestError as e:
+            return target_record
         return target_record
