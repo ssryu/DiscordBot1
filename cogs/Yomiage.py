@@ -69,7 +69,7 @@ class Yomiage(commands.Cog):
             # 挨拶メッセージを読み上げる
             self.play_voice('join_voice.m4a')
 
-            self.yomiage_channel_name = ctx.channel.name
+            self.yomiage_channel_name = ctx.author.voice.channel.name
 
             self.retry_play.start()
             await ctx.channel.send('はーい！')
