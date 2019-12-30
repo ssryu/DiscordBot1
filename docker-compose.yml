@@ -6,9 +6,26 @@ networks:
 
 services:
   bot:
-    container_name: bot
+    container_name: tachikoma
     build:
-      context: ./
-      dockerfile: Dockerfile
+        context: ./
+        dockerfile: Dockerfile
     env_file:
-      - bot.env
+        - bot.env
+    networks:
+      - discordbot-net
+    depends_on:
+      - database
+
+  database:
+    container_name: database
+    image: postgres:11.6-alpine
+    restart: always
+    ports:
+        - "15432:5432"
+    environment:
+        POSTGRES_DB: "tachikoma"
+        POSTGRES_USER: "tachikoma"
+        POSTGRES_PASSWORD: "mysecretpassword"
+    networks:
+      - discordbot-net

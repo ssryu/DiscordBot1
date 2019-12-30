@@ -2,7 +2,9 @@ import base64
 import logging
 import os
 
+import migrate.versioning.api
 from discord.ext import commands
+from migrate import DatabaseAlreadyControlledError
 
 import bot_properties as bp
 
@@ -10,7 +12,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("%(relativeCreated)07d[ms] : %(name)s : %(message)s"))
+handler.setFormatter(logging.Formatter("[%(levelname)s]: %(relativeCreated)07d[ms] : %(name)s : %(lineno)s : %(message)s"))
 logger.addHandler(handler)
 
 app_credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
@@ -18,7 +20,16 @@ base64_credentials = os.environ.get('GOOGLE_CREDENTIALS')
 with open(app_credentials_path, 'wb') as out:
     json_str = base64.b64decode(base64_credentials.encode('utf-8'))
     out.write(json_str)
-    logger.info(json_str)
+    logger.debug(json_str)
+
+# データベースマイグレーション
+try:
+    migrate.versioning.api.version_control(os.environ.get('DATABASE_URL'), './db/migrate')
+except DatabaseAlreadyControlledError as e:
+    current_version = migrate.versioning.api.version('./db/migrate')
+    logger.info(f'データベースは管理状態です: {current_version}')
+
+migrate.versioning.api.upgrade(os.environ.get('DATABASE_URL'), './db/migrate')
 
 bot = commands.Bot(command_prefix='')
 bot.load_extension('cogs.Help')
