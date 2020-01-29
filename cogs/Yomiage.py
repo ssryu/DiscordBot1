@@ -65,12 +65,13 @@ class Yomiage(commands.Cog):
         # VCに接続していなければ接続する
         if self.vc is None:
             channel = ctx.author.voice.channel
-            self.vc = await channel.connect(timeout=5.0, reconnect=True)
+            self.vc = await channel.connect(timeout=2.0, reconnect=True)
 
             # 挨拶メッセージを読み上げる
             self.play_voice('join_voice.m4a')
 
-            self.yomiage_channel_name = ctx.author.voice.channel.name
+            # 読み上げを行うチャンネルを確定させる
+            self.yomiage_channel_name = ctx.channel.name
 
             self.retry_play.start()
             await ctx.channel.send('はーい！')
@@ -89,7 +90,7 @@ class Yomiage(commands.Cog):
         self.vc = None
         self.yomiage_channel_name = None
         self.retry_play.stop()  # キューの消化を止める
-        self.clear_play_queue() # キューの中身をクリアする
+        self.clear_play_queue()  # キューの中身をクリアする
 
         await ctx.channel.send('またねっ！')
 
@@ -171,9 +172,9 @@ class Yomiage(commands.Cog):
 
         if after.channel is not None:
             if self.vc is not None:
-                if self.yomiage_channel_name != after.channel.name:
+                if self.vc.channel.name != after.channel.name:
                     logger.debug(after.channel)
-                    logger.debug(self.yomiage_channel_name)
+                    logger.debug(self.vc.channel.name)
                     logger.info("yomiage_channel_name not equal after.channel.name")
                     return
 
