@@ -3,6 +3,7 @@ import logging
 import datetime
 import os
 import queue
+import hashlib
 
 import discord
 from discord.ext import tasks, commands
@@ -64,16 +65,16 @@ class Yomiage(commands.Cog):
         # VCに接続していなければ接続する
         if self.vc is None:
             channel = ctx.author.voice.channel
-            self.vc = await channel.connect()
+            self.vc = await channel.connect(timeout=2.0, reconnect=True)
 
             # 挨拶メッセージを読み上げる
             self.play_voice('join_voice.m4a')
 
+            # 読み上げを行うチャンネルを確定させる
             self.yomiage_channel_name = ctx.channel.name
 
             self.retry_play.start()
             await ctx.channel.send('はーい！')
-            return
 
     @commands.command(name='ばいばい')
     async def leave_voice_chat(self, ctx):
@@ -85,16 +86,27 @@ class Yomiage(commands.Cog):
 
         # VoiceChannelに接続している場合は接続を切断し、メッセージを返す
         await self.vc.disconnect()
+
         self.vc = None
         self.yomiage_channel_name = None
+        self.retry_play.stop()  # キューの消化を止める
+        self.clear_play_queue()  # キューの中身をクリアする
 
-        self.retry_play.stop()
         await ctx.channel.send('またねっ！')
+
+    def clear_play_queue(self):
+        # 再生待ちを全てクリアする
+        while not self.play_queue.empty():
+            filename, is_after_remove = self.play_queue.get()
+            self.my_after(None, filename, is_after_remove)
+
+        self.play_queue.task_done()
 
     @commands.command(name='シッ！')
     async def stop_voice(self, ctx):
         """ 読み上げを中断させる """
-        await self.vc.stop()
+        self.vc.stop()
+        self.clear_play_queue()
 
     @commands.command(name='辞書登録')
     async def add_dictionary(self, ctx, keyword, replace_word):
@@ -160,9 +172,9 @@ class Yomiage(commands.Cog):
 
         if after.channel is not None:
             if self.vc is not None:
-                if self.yomiage_channel_name != after.channel.name:
+                if self.vc.channel.name != after.channel.name:
                     logger.debug(after.channel)
-                    logger.debug(self.yomiage_channel_name)
+                    logger.debug(self.vc.channel.name)
                     logger.info("yomiage_channel_name not equal after.channel.name")
                     return
 
@@ -212,7 +224,10 @@ class Yomiage(commands.Cog):
 
         response = self.create_voice(input_text)
 
-        tmp_filename = f'{datetime.datetime.now().timestamp()}.mp3'
+        byte_timestamp = str(datetime.datetime.now().timestamp()).encode()
+        filename = hashlib.md5(byte_timestamp).hexdigest()
+        suffix = '.mp3'
+        tmp_filename = filename + suffix
         logger.debug(tmp_filename)
 
         with open(tmp_filename, 'wb') as out:

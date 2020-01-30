@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 engine = create_engine(
     os.environ.get('DATABASE_URL'),
     encoding="utf-8",
-    echo=True
+    echo=False
 )
 
 session = scoped_session(

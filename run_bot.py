@@ -10,6 +10,7 @@ import bot_properties as bp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("[%(levelname)s]: %(relativeCreated)07d[ms] : %(name)s : %(lineno)s : %(message)s"))
