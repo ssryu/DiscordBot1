@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import uuid
 
 import discord
 import googleapiclient.discovery
@@ -85,6 +86,14 @@ class MemberStatus(commands.Cog):
 
     def create_search_key(self, name, discriminator):
         return f"{name}#{discriminator}"
+
+    @commands.command(name='家門登録')
+    async def signup_member(self, ctx, 家門名, *, member: discord.Member = None):
+        ctx.author.id, 家門名, uuid.uuid4()
+
+    @commands.command(name='キャラクター登録')
+    async def signup_character(self, ctx, 職名, *, member: discord.Member = None):
+        ctx.author.id, 家門名, uuid.uuid4()
 
     @commands.command(name='戦闘力更新')
     async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
