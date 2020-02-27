@@ -4,6 +4,7 @@ import datetime
 import os
 import queue
 import hashlib
+import re
 
 import discord
 from discord.ext import tasks, commands
@@ -203,6 +204,11 @@ class Yomiage(commands.Cog):
 
         return input_text
 
+    @staticmethod
+    def replace_url(input_text):
+        regex = re.compile(r"http\S+")
+        return re.sub(regex, 'URL', input_text)
+
     @commands.Cog.listener()
     async def on_message(self, ctx):
         # 自分自身の発言で反応しないように絶対必須
@@ -219,6 +225,8 @@ class Yomiage(commands.Cog):
 
         name = self.convert_replace_dictionary(ctx.author.name)
         content = self.convert_replace_dictionary(ctx.content)
+        content = self.replace_url(content)
+
         input_text = f'<speak>{name}<break time="300ms"/>{content}</speak>'
         logger.debug(input_text)
 
