@@ -2,16 +2,27 @@ import json
 import logging
 import os
 import uuid
+from datetime import datetime, date, timedelta
 
 import discord
 import googleapiclient.discovery
 from discord.ext import commands
 from google.oauth2 import service_account
 
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'IPAGothic'
+
+from db.session import session
+from db.member import Member
+
+
+
 logger = logging.getLogger(__name__)
 
 
 class MemberStatus(commands.Cog):
+
+    spreadsheet_id: str
 
     def __init__(self, bot):
         self.bot = bot
@@ -25,7 +36,7 @@ class MemberStatus(commands.Cog):
         await ctx.channel.send(msg)
 
     def get_job_list(self):
-        range_name = '職名リスト(新規職が追加されたら編集)!A:A'
+        range_name: str = '職名リスト(新規職が追加されたら編集)!A:A'
         service = self.get_spreadsheet_service()
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=self.spreadsheet_id,
@@ -88,12 +99,50 @@ class MemberStatus(commands.Cog):
         return f"{name}#{discriminator}"
 
     @commands.command(name='家門登録')
-    async def signup_member(self, ctx, 家門名, *, member: discord.Member = None):
-        ctx.author.id, 家門名, uuid.uuid4()
+    async def signup_member(self, ctx, 家門名, 戦闘力, 職名, member: discord.Member = None):
+        a = Member.登録(session, ctx.author.id, 家門名, 戦闘力, 職名)
+        return a
 
-    @commands.command(name='キャラクター登録')
-    async def signup_character(self, ctx, 職名, *, member: discord.Member = None):
-        ctx.author.id, 家門名, uuid.uuid4()
+    def データベース側の戦闘力更新(self, user_id, 戦闘力):
+        Member.戦闘力更新(session, user_id, 戦闘力)
+        return
+
+    @commands.command(name='戦闘力推移')
+    async def signup_character(self, ctx, date_range=30, *, member: discord.Member = None):
+        delta = timedelta(days=date_range)
+        end = datetime.now()
+        start = end - delta
+
+        # testuser = 552078039761027073
+        # data = Member.指定期間における履歴取得(session, testuser, start, end)
+        data = Member.指定期間における履歴取得(session, ctx.author.id, start, end)
+        xy_data = [(x.created_at, x.戦闘力) for x in data]
+        x_data, y_data = map(list, zip(*xy_data))
+        latest_data = data[-1]
+
+        start_datetime_str = datetime.strftime(start, '%Y-%m-%d %H:%M:%S')
+        end_datetime_str = datetime.strftime(end, '%Y-%m-%d %H:%M:%S')
+
+        plt.plot(x_data, y_data, color="#0d5295", marker='.', markersize='10')
+
+        graph_tmp_filename = uuid.uuid4()
+        plt.ylabel("戦闘力")
+        plt.xlabel("更新日時")
+        plt.grid(b=True, which='major', color='#666666', linestyle='-', alpha=0.5)
+        plt.minorticks_on()
+        plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(f"{graph_tmp_filename}.png")
+        file = discord.File(f"{graph_tmp_filename}.png", filename=f"{graph_tmp_filename}.png")
+
+        embed = discord.Embed(title=f"{latest_data.家門名} さんの戦闘力推移", description=f"{start_datetime_str} 〜 {end_datetime_str}", color=discord.Colour.from_rgb(13, 82, 149))
+        embed.add_field(name="プロット日数範囲", value=f"過去 {date_range} 日分")
+        embed.set_image(url=f"attachment://{graph_tmp_filename}.png")
+        await ctx.channel.send(file=file, embed=embed)
+
+        os.remove(f"{graph_tmp_filename}.png")
+        return ""
 
     @commands.command(name='戦闘力更新')
     async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
@@ -120,6 +169,8 @@ class MemberStatus(commands.Cog):
                                                         range=cp_range_name,
                                                         valueInputOption='USER_ENTERED',
                                                         body=body).execute()
+
+        self.データベース側の戦闘力更新(ctx.author.id, cp)
 
         msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
