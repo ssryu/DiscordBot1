@@ -123,6 +123,7 @@ class MemberStatus(commands.Cog):
         start_datetime_str = datetime.strftime(start, '%Y-%m-%d %H:%M:%S')
         end_datetime_str = datetime.strftime(end, '%Y-%m-%d %H:%M:%S')
 
+        plt.figure()
         plt.plot(x_data, y_data, color="#0d5295", marker='.', markersize='10')
 
         graph_tmp_filename = uuid.uuid4()
