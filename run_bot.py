@@ -1,10 +1,9 @@
 import base64
 import logging
 import os
+import uuid
 
-import migrate.versioning.api
 from discord.ext import commands
-from migrate import DatabaseAlreadyControlledError
 
 import bot_properties as bp
 
@@ -23,14 +22,8 @@ with open(app_credentials_path, 'wb') as out:
     out.write(json_str)
     logger.debug(json_str)
 
-# データベースマイグレーション
-try:
-    migrate.versioning.api.version_control(os.environ.get('DATABASE_URL'), './db/migrate')
-except DatabaseAlreadyControlledError as e:
-    current_version = migrate.versioning.api.version('./db/migrate')
-    logger.info(f'データベースは管理状態です: {current_version}')
 
-migrate.versioning.api.upgrade(os.environ.get('DATABASE_URL'), './db/migrate')
+
 
 bot = commands.Bot(command_prefix='')
 bot.load_extension('cogs.Help')

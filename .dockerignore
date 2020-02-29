@@ -4,3 +4,12 @@
 docker-compose.yml
 heroku.yml
 README.md
+venv
+DiscordBot1.iml
+__pycache__
+.idea
+.editorconfig
+.DS_Store
+Dockerfile
+google-credentials.json
+
