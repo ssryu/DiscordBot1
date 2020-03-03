@@ -52,9 +52,10 @@ class BaseWar(commands.Cog):
     async def showBaseMap(self, ctx, id):
         """拠点マップ {マップID}"""
         data = Map.マップIDで拠点情報を取得(session, id)
-        if len(data) > 0:
+        if data is not None:
             days = ['日', '月', '火', '水', '木', '金', '土']
             マップID = data.id
+            地域名 = data.地域マスタ_collection[0].地域名
             マップ名 = data.マップ名
             拠点曜日 = days[data.拠点マップ_collection[0].曜日]
             拠点等級 = data.拠点マップ_collection[0].等級
@@ -63,10 +64,8 @@ class BaseWar(commands.Cog):
             file = discord.File(f"拠点戦マップ画像/{map_filename}.PNG", filename=f"map.png")
             embed = discord.Embed(
                 title=f"{マップ名}",
+                description=f"ID:{マップID} {拠点曜日}曜日 {拠点等級}等級 {地域名}",
                 color=discord.Colour.from_rgb(13, 82, 149))
-            embed.add_field(name="ID", value=f"{マップID}")
-            embed.add_field(name="等級", value=f"{拠点等級}")
-            embed.add_field(name="曜日", value=f"{拠点曜日}")
             embed.set_image(url=f"attachment://map.png")
             await ctx.channel.send(file=file, embed=embed)
         else:

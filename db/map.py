@@ -33,6 +33,6 @@ class Map(Base):
     def マップIDで拠点情報を取得(cls, session, id):
         a = session.query(cls.classes.マップマスタ).filter(
             cls.classes.マップマスタ.id == id
-        ).one()
+        ).one_or_none()
 
         return a
