@@ -109,6 +109,7 @@ class MemberStatus(commands.Cog):
 
     @commands.command(name='戦闘力推移')
     async def signup_character(self, ctx, date_range=30, *, member: discord.Member = None):
+        """戦闘力推移 {現在から過去何日分(default=30)}"""
         delta = timedelta(days=date_range)
         end = datetime.now()
         start = end - delta
@@ -147,6 +148,7 @@ class MemberStatus(commands.Cog):
 
     @commands.command(name='戦闘力更新')
     async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
+        """戦闘力更新 {戦闘力}"""
         user_key = self.create_search_key(ctx.author.name, ctx.author.discriminator)
         logger.info(user_key)
 

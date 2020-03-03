@@ -26,12 +26,13 @@ with open(app_credentials_path, 'wb') as out:
 
 
 bot = commands.Bot(command_prefix='')
-bot.load_extension('cogs.Help')
+# bot.load_extension('cogs.Help')
 bot.load_extension('cogs.DiceGame')
 bot.load_extension('cogs.SlotGame')
 bot.load_extension('cogs.BossSchedule')
 bot.load_extension('cogs.MemberStatus')
 bot.load_extension('cogs.Yomiage')
+bot.load_extension('cogs.BaseWar')
 bot.run(bp.bot_token)
 
 #
