@@ -1,29 +1,185 @@
 import calendar
+import collections
+import unicodedata
+from datetime import datetime, date, timedelta, timezone, time
 import logging
 
 import discord
+import pytz
 from discord.ext import commands
 
 from db.map import Map
+from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない
 from db.session import session
 
 logger = logging.getLogger(__name__)
+
+days = ['日', '月', '火', '水', '木', '金', '土']
 
 
 class BaseWar(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # @commands.command(name='マップ参照')
-    # async def showMap(self, ctx):
-    #     file = discord.File(f"拠点戦マップ画像/日_1_トレント街角.PNG", filename=f"test.png")
-    #     embed = discord.Embed(
-    #         title=f"トレント街角",
-    #         color=discord.Colour.from_rgb(13, 82, 149))
-    #     embed.add_field(name="等級", value=f"1")
-    #     embed.add_field(name="曜日", value=f"日曜日")
-    #     embed.set_image(url=f"attachment://test.png")
-    #     await ctx.channel.send(file=file, embed=embed)
+    @commands.command(name='拠点戦オープン')
+    async def 拠点戦オープン(self, ctx, map_id=None, event_date=None):
+        if map_id is None:
+            await ctx.channel.send("「拠点戦オープン {map_id}」という形式で指定してください")
+            return
+
+        try:
+            map_id = int(unicodedata.normalize('NFKC', map_id))
+        except ValueError as e:
+            await ctx.channel.send("マップIDは数値で指定してください")
+            return
+
+        拠点 = Map.マップIDで拠点情報を取得(session, map_id)
+
+        if 拠点 is not None:
+            # イベント日付が指定されていなければ当日として扱う
+            tz_tokyo = pytz.timezone('Asia/Tokyo')
+            if event_date is None:
+                event_date_tokyo = tz_tokyo.localize(datetime.now())
+            else:
+                event_date_tokyo = tz_tokyo.localize(datetime.strptime(event_date, '%Y-%m-%d'))
+
+            BaseWarModel.拠点戦情報を登録する(session, map_id, event_date_tokyo.date())
+
+            マップID = 拠点.マップマスタ_id
+            地域名 = 拠点.マップマスタ.地域マスタ_collection[0].地域名
+            マップ名 = 拠点.マップマスタ.マップ名
+            拠点曜日 = days[拠点.曜日]
+            拠点等級 = 拠点.等級
+            map_filename = f"{拠点曜日}_{拠点等級}_{マップ名}"
+
+            file = discord.File(f"拠点戦マップ画像/{map_filename}.PNG", filename=f"map.png")
+            embed = discord.Embed(
+                title=f"拠点戦 参加者受け付け開始 {マップ名}",
+                description=f"ID:{マップID} {拠点曜日}曜日 {拠点等級}等級 {地域名}",
+                color=discord.Colour.from_rgb(13, 82, 149))
+            embed.set_image(url=f"attachment://map.png")
+            await ctx.channel.send(file=file, embed=embed)
+        else:
+            await ctx.channel.send(f"マップID {map_id} が見つかりませんでした")
+
+    @commands.command(name='拠点戦クローズ')
+    async def 拠点戦クローズ(self, ctx, event_date=None):
+        tz_tokyo = pytz.timezone('Asia/Tokyo')
+
+        if event_date is None:
+            event_date_tokyo = tz_tokyo.localize(datetime.now())
+        else:
+            event_date_tokyo = tz_tokyo.localize(datetime.strptime(event_date, '%Y-%m-%d'))
+
+        try:
+            BaseWarModel.拠点戦の参加を締め切る(session, event_date_tokyo.date())
+        except 参加受付中の拠点戦がない as e:
+            await ctx.channel.send(f"{event_date_tokyo.date()} 参加受付中の拠点戦情報はありません")
+            return
+
+        await ctx.channel.send(f"{event_date_tokyo.date()} の拠点戦をクローズしました！")
+        return
+
+    @commands.command(name='拠点戦')
+    async def 拠点戦参加(self, ctx, 参加ステータス='', VCステータス='', event_date=None):
+        """拠点戦 {参加,遅刻,欠席} {VC可,VC不可,聞き専} {拠点戦日(2020-01-01形式 default=当日)}"""
+
+        tz_tokyo = pytz.timezone('Asia/Tokyo')
+        if event_date is None:
+            event_date_tokyo = tz_tokyo.localize(datetime.now())
+        else:
+            event_date_tokyo = tz_tokyo.localize(datetime.strptime(event_date, '%Y-%m-%d'))
+
+        拠点戦 = BaseWarModel.拠点戦取得(session, event_date_tokyo.date())
+
+        try:
+            BaseWarModel.参加(session, ctx.author.id, event_date_tokyo.date(), 参加ステータス, VCステータス)
+            await ctx.channel.send(f"{ctx.author.name} {参加ステータス} {VCステータス} で {self.UTC日付を日本の日付に変換(拠点戦.日付)} {拠点戦.拠点マップ.等級}等級 {拠点戦.拠点マップ.マップマスタ.地域マスタ_collection[0].地域名}/{拠点戦.拠点マップ.マップマスタ.マップ名} に申請完了！")
+        except 参加受付中の拠点戦がない as e:
+            await ctx.channel.send("現在、参加受け付け中の拠点戦がありません")
+        except 参加種別が不正 as e:
+            await ctx.channel.send("参加種別の指定は [ 参加, 欠席, 遅刻 ] のいずれかを選択してください")
+        except 参加VC状況が不正 as e:
+            await ctx.channel.send("VC状況の指定は [ VC可, VC不可, 聞き専 ] のいずれかを選択してください")
+
+    @commands.command(name='出欠確認')
+    async def 拠点戦出欠確認(self, ctx, event_date=None):
+        """出欠確認 {拠点戦日(2020-01-01形式 default=当日)}"""
+        tz_tokyo = pytz.timezone('Asia/Tokyo')
+        if event_date is None:
+            event_date_tokyo = tz_tokyo.localize(datetime.now())
+        else:
+            event_date_tokyo = tz_tokyo.localize(datetime.strptime(event_date, '%Y-%m-%d'))
+
+        拠点戦 = BaseWarModel.拠点戦取得(session, event_date_tokyo.date())
+
+        try:
+            参加者一覧 = BaseWarModel.参加者情報取得(session, event_date_tokyo.date())
+        except 参加受付中の拠点戦がない as e:
+            await ctx.channel.send(f"{event_date_tokyo.date()} 現在、参加受付中の拠点戦がありません")
+            return
+        except 参加者がいない as e:
+            await ctx.channel.send(f"{event_date_tokyo.date()} の拠点戦にはまだ参加申請がありません")
+            return
+
+        msg = "```\n"
+
+        msg += f"{self.UTC日付を日本の日付に変換(拠点戦.日付)} {days[拠点戦.拠点マップ.曜日]}曜日\n"
+        msg += f"{拠点戦.拠点マップ.等級}等級 {拠点戦.拠点マップ.マップマスタ.地域マスタ_collection[0].地域名}/{拠点戦.拠点マップ.マップマスタ.マップ名}\n"
+        msg += "\n"
+
+        参加人数 = 0
+        遅刻人数 = 0
+        欠席人数 = 0
+
+        VC可人数 = 0
+        VC不可人数 = 0
+        聞き専人数 = 0
+
+        参加職 = []
+
+        msg += "[参加者]:\n"
+        for 参加者 in 参加者一覧:
+            if 参加者.参加種別マスタ_id == '参加':
+                msg += f"\t{参加者.参加VC状況マスタ_id} {参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.職マスタ_職名} {参加者.メンバー.メンバー履歴.戦闘力}\n"
+                参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
+                参加人数 += 1
+        msg += "\n"
+
+        msg += "[遅刻者]:\n"
+        for 参加者 in 参加者一覧:
+            if 参加者.参加種別マスタ_id == '遅刻':
+                msg += f"\t{参加者.参加VC状況マスタ_id} {参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.職マスタ_職名} {参加者.メンバー.メンバー履歴.戦闘力}\n"
+                参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
+                遅刻人数 += 1
+        msg += "\n"
+
+        msg += "[欠席者]:\n"
+        for 参加者 in 参加者一覧:
+            if 参加者.参加種別マスタ_id == '欠席':
+                msg += f"\t{参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.戦闘力} {参加者.メンバー.メンバー履歴.職マスタ_職名}\n"
+                欠席人数 += 1
+
+        合計申請人数 = 参加人数 + 遅刻人数 + 欠席人数
+        職別参加人数 = collections.Counter(参加職)
+
+        msg += "\n"
+        msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 欠席: {欠席人数} 名\n"
+        msg += f"合計: {合計申請人数} 名\n"
+        msg += "\n"
+
+        for key, val in 職別参加人数.items():
+            msg += f"{key}: {val} 名\n"
+
+        msg += "```"
+
+        await ctx.channel.send(msg)
+
+    @staticmethod
+    def UTC日付を日本の日付に変換(x):
+        tz_tokyo = pytz.timezone('Asia/Tokyo')
+        dt_native = datetime.combine(x, time())
+        return tz_tokyo.localize(dt_native).date()
 
     @staticmethod
     def 拠点マップか(x):
@@ -53,7 +209,6 @@ class BaseWar(commands.Cog):
         """拠点マップ {マップID}"""
         data = Map.マップIDで拠点情報を取得(session, id)
         if data is not None:
-            days = ['日', '月', '火', '水', '木', '金', '土']
             マップID = data.id
             地域名 = data.地域マスタ_collection[0].地域名
             マップ名 = data.マップ名

@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+import pytz
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.automap import automap_base
 
@@ -27,6 +28,10 @@ class Member(Base):
 
     @classmethod
     def 指定期間における履歴取得(cls, session, user_id, start, end):
+        utc = pytz.timezone('UTC')
+        start.astimezone(utc)
+        end.astimezone(utc)
+
         a = session.query(cls.classes.メンバー履歴).filter(
             cls.classes.メンバー履歴.user_id == str(user_id),
             cls.classes.メンバー履歴.created_at >= start,

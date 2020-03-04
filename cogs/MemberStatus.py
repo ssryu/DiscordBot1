@@ -6,6 +6,7 @@ from datetime import datetime, date, timedelta
 
 import discord
 import googleapiclient.discovery
+import pytz
 from discord.ext import commands
 from google.oauth2 import service_account
 
@@ -111,7 +112,9 @@ class MemberStatus(commands.Cog):
     async def signup_character(self, ctx, date_range=30, *, member: discord.Member = None):
         """戦闘力推移 {現在から過去何日分(default=30)}"""
         delta = timedelta(days=date_range)
-        end = datetime.now()
+        tokyo = pytz.timezone('Asia/Tokyo')
+
+        end = tokyo.localize(datetime.now())
         start = end - delta
 
         # testuser = 552078039761027073
