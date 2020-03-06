@@ -23,6 +23,7 @@ class BaseWar(commands.Cog):
 
     @commands.command(name='拠点戦オープン')
     async def 拠点戦オープン(self, ctx, map_id=None, event_date=None):
+        """拠点戦オープン {2020-03-05 形式の日付(default=当日)}"""
         if map_id is None:
             await ctx.channel.send("「拠点戦オープン {map_id}」という形式で指定してください")
             return
@@ -64,6 +65,7 @@ class BaseWar(commands.Cog):
 
     @commands.command(name='拠点戦クローズ')
     async def 拠点戦クローズ(self, ctx, event_date=None):
+        """拠点戦クローズ {2020-03-05 形式の日付(default=当日)}"""
         tz_tokyo = pytz.timezone('Asia/Tokyo')
 
         if event_date is None:
@@ -98,7 +100,7 @@ class BaseWar(commands.Cog):
         except 参加受付中の拠点戦がない as e:
             await ctx.channel.send("現在、参加受け付け中の拠点戦がありません")
         except 参加種別が不正 as e:
-            await ctx.channel.send("参加種別の指定は [ 参加, 欠席, 遅刻 ] のいずれかを選択してください")
+            await ctx.channel.send("参加種別の指定は [ 参加, 遅刻, 拠点放置, 欠席 ] のいずれかを選択してください")
         except 参加VC状況が不正 as e:
             await ctx.channel.send("VC状況の指定は [ VC可, VC不可, 聞き専 ] のいずれかを選択してください")
 
