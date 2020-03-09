@@ -139,21 +139,23 @@ class Member(Base):
 
     @classmethod
     def 登録(cls, session, user_id, 家門名, 戦闘力, 職名):
-        history_id = uuid.uuid4()
+        job = cls.職業名で職を取得(session, 職名)
 
+        history_id = uuid.uuid4()
         history_record = cls.classes.メンバー履歴(
             UUIDv4=history_id,
             user_id=str(user_id),
             家門名=家門名,
             戦闘力=戦闘力,
-            職マスタ_職名=職名
+            職マスタ_職名=job.職名
         )
         session.add(history_record)
         session.flush()
 
         member_record = cls.classes.メンバー(
             user_id=str(user_id),
-            メンバー履歴_UUIDv4=history_id
+            メンバー履歴_UUIDv4=history_id,
+            脱退済=false()
         )
         session.merge(member_record)
         session.flush()

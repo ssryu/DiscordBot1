@@ -9,7 +9,7 @@ import pytz
 from discord.ext import commands
 
 from db.map import Map
-from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない
+from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない, メンバーが見つからない
 from db.session import session
 
 logger = logging.getLogger(__name__)
@@ -100,6 +100,8 @@ class BaseWar(commands.Cog):
         try:
             BaseWarModel.参加(session, ctx.author.id, event_date_tokyo.date(), 参加ステータス, VCステータス)
             await ctx.channel.send(f"{ctx.author.name} {参加ステータス} {VCステータス} で {self.UTC日付を日本の日付に変換(拠点戦.日付)} {拠点戦.拠点マップ.等級}等級 {拠点戦.拠点マップ.マップマスタ.地域マスタ_collection[0].地域名}/{拠点戦.拠点マップ.マップマスタ.マップ名} に申請完了！")
+        except メンバーが見つからない as e:
+            await ctx.channel.send("まず「入隊 {家門名} {戦闘力} {職名}」といった形でメンバー登録をお願いします！")
         except 参加受付中の拠点戦がない as e:
             await ctx.channel.send("現在、参加受け付け中の拠点戦がありません")
         except 参加種別が不正 as e:

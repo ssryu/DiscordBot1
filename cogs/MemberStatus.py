@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = 'IPAGothic'
 
 from db.session import session
-from db.member import Member, メンバーが見つからない
+from db.member import Member, メンバーが見つからない, 職が見つからない
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +112,38 @@ class MemberStatus(commands.Cog):
         msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
 
+    @commands.command(name='強制入隊')
+    @commands.has_role('隊長')
+    async def signup_member_from_leader(self, ctx, user_id, 家門名, 戦闘力, 職名):
+        try:
+            Member.登録(session, user_id, 家門名, 戦闘力, 職名)
+            member = Member.UserIDでメンバーを取得(session, ctx.author.id)
+        except 職が見つからない as e:
+            await ctx.channel.send("該当する職が見つかりませんでした！")
+            return
+        except メンバーが見つからない as e:
+            await ctx.channel.send("メンバーが見つかりませんでした！")
+            return
+
+        await ctx.channel.send(f"家門名: {member.メンバー履歴.家門名}, 戦闘力: {member.メンバー履歴.戦闘力}, メイン職: {member.メンバー履歴.職マスタ_職名} で入隊しました！")
+        return
+
+    @commands.command(name='入隊')
+    @commands.has_role('攻殻機動隊')
+    async def signup_member(self, ctx, 家門名, 戦闘力, 職名):
+        try:
+            Member.登録(session, ctx.author.id, 家門名, 戦闘力, 職名)
+            member = Member.UserIDでメンバーを取得(session, ctx.author.id)
+        except 職が見つからない as e:
+            await ctx.channel.send("該当する職が見つかりませんでした！")
+            return
+        except メンバーが見つからない as e:
+            await ctx.channel.send("メンバーが見つかりませんでした！")
+            return
+
+        await ctx.channel.send(f"家門名: {member.メンバー履歴.家門名}, 戦闘力: {member.メンバー履歴.戦闘力}, メイン職: {member.メンバー履歴.職マスタ_職名} で入隊しました！")
+        return
+
     @commands.command(name='除隊')
     @commands.has_role('隊長')
     async def 除隊(self, ctx, user_id):
@@ -143,11 +175,6 @@ class MemberStatus(commands.Cog):
 
     def create_search_key(self, name, discriminator):
         return f"{name}#{discriminator}"
-
-    @commands.command(name='家門登録')
-    async def signup_member(self, ctx, 家門名, 戦闘力, 職名, member: discord.Member = None):
-        a = Member.登録(session, ctx.author.id, 家門名, 戦闘力, 職名)
-        return a
 
     def データベース側の戦闘力更新(self, user_id, 戦闘力):
         Member.戦闘力更新(session, user_id, 戦闘力)
