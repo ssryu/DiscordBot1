@@ -167,13 +167,13 @@ class MemberStatus(commands.Cog):
         delta = timedelta(days=date_range)
         tokyo = pytz.timezone('Asia/Tokyo')
 
-        end = tokyo.localize(datetime.now())
+        end = datetime.now(tz=pytz.utc).astimezone(tokyo)
         start = end - delta
 
         # testuser = 552078039761027073
         # data = Member.指定期間における履歴取得(session, testuser, start, end)
         data = Member.指定期間における履歴取得(session, ctx.author.id, start, end)
-        xy_data = [(x.created_at, x.戦闘力) for x in data]
+        xy_data = [(x.created_at.astimezone(tokyo), x.戦闘力) for x in data]
         x_data, y_data = map(list, zip(*xy_data))
         latest_data = data[-1]
 
@@ -201,8 +201,6 @@ class MemberStatus(commands.Cog):
 
         os.remove(f"{graph_tmp_filename}.png")
         return ""
-
-
 
     @staticmethod
     def get_credentials():

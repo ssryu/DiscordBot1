@@ -1,11 +1,16 @@
 import base64
 import logging
 import os
+import time
 import uuid
 
 from discord.ext import commands
 
 import bot_properties as bp
+
+os.environ["TZ"] = "UTC"
+time.tzset()
+print(time.tzname)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
