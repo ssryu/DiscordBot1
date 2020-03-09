@@ -31,15 +31,6 @@ class Member(Base):
     __tablename__ = 'メンバー'
 
     @classmethod
-    def all(cls, session):
-        return session.query(cls.classes.メンバー).all()
-
-    @classmethod
-    def find(cls, session, user_id):
-        a = session.query(cls.classes.メンバー).filter(cls.classes.メンバー.user_id == str(user_id)).all()
-        return a
-
-    @classmethod
     def 指定期間における履歴取得(cls, session, user_id, start, end):
         utc = pytz.timezone('UTC')
         start.astimezone(utc)

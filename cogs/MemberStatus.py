@@ -14,9 +14,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = 'IPAGothic'
 
 from db.session import session
-from db.member import Member
-
-
+from db.member import Member, メンバーが見つからない
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +114,14 @@ class MemberStatus(commands.Cog):
 
     @commands.command(name='除隊')
     @commands.has_role('隊長')
-    async def 除隊(self, ctx, id):
-        self.データベース側の除隊処理(id)
-        await ctx.channel.send("aaaaaaa")
+    async def 除隊(self, ctx, user_id):
+        try:
+            member = Member.UserIDでメンバーを取得(session, user_id)
+            self.データベース側の除隊処理(user_id)
+            await ctx.channel.send(f"{member.メンバー履歴.家門名} さんを除隊済に設定しました！")
+        except メンバーが見つからない as e:
+            await ctx.channel.send("ユーザーが見つかりませんでした！")
+            return
         return
 
     def get_spreadsheet_service(self):
