@@ -9,7 +9,7 @@ import pytz
 from discord.ext import commands
 
 from db.map import Map
-from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない
+from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない, メンバーが見つからない
 from db.session import session
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ class BaseWar(commands.Cog):
         self.bot = bot
 
     @commands.command(name='拠点戦オープン')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦オープン(self, ctx, map_id=None, event_date=None):
         """拠点戦オープン {2020-03-05 形式の日付(default=当日)}"""
         if map_id is None:
@@ -64,6 +65,7 @@ class BaseWar(commands.Cog):
             await ctx.channel.send(f"マップID {map_id} が見つかりませんでした")
 
     @commands.command(name='拠点戦クローズ')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦クローズ(self, ctx, event_date=None):
         """拠点戦クローズ {2020-03-05 形式の日付(default=当日)}"""
         tz_tokyo = pytz.timezone('Asia/Tokyo')
@@ -83,6 +85,7 @@ class BaseWar(commands.Cog):
         return
 
     @commands.command(name='拠点戦')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦参加(self, ctx, 参加ステータス='', VCステータス='', event_date=None):
         """拠点戦 {参加,遅刻,欠席} {VC可,VC不可,聞き専} {拠点戦日(2020-01-01形式 default=当日)}"""
 
@@ -97,6 +100,8 @@ class BaseWar(commands.Cog):
         try:
             BaseWarModel.参加(session, ctx.author.id, event_date_tokyo.date(), 参加ステータス, VCステータス)
             await ctx.channel.send(f"{ctx.author.name} {参加ステータス} {VCステータス} で {self.UTC日付を日本の日付に変換(拠点戦.日付)} {拠点戦.拠点マップ.等級}等級 {拠点戦.拠点マップ.マップマスタ.地域マスタ_collection[0].地域名}/{拠点戦.拠点マップ.マップマスタ.マップ名} に申請完了！")
+        except メンバーが見つからない as e:
+            await ctx.channel.send("まず「入隊 {家門名} {戦闘力} {職名}」といった形でメンバー登録をお願いします！")
         except 参加受付中の拠点戦がない as e:
             await ctx.channel.send("現在、参加受け付け中の拠点戦がありません")
         except 参加種別が不正 as e:
@@ -105,6 +110,7 @@ class BaseWar(commands.Cog):
             await ctx.channel.send("VC状況の指定は [ VC可, VC不可, 聞き専 ] のいずれかを選択してください")
 
     @commands.command(name='出欠確認')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦出欠確認(self, ctx, event_date=None):
         """出欠確認 {拠点戦日(2020-01-01形式 default=当日)}"""
         tz_tokyo = pytz.timezone('Asia/Tokyo')
@@ -132,6 +138,7 @@ class BaseWar(commands.Cog):
 
         参加人数 = 0
         遅刻人数 = 0
+        拠点放置人数 = 0
         欠席人数 = 0
 
         VC可人数 = 0
@@ -156,17 +163,25 @@ class BaseWar(commands.Cog):
                 遅刻人数 += 1
         msg += "\n"
 
+        msg += "[拠点放置]:\n"
+        for 参加者 in 参加者一覧:
+            if 参加者.参加種別マスタ_id == '拠点放置':
+                msg += f"\t{参加者.参加VC状況マスタ_id} {参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.職マスタ_職名} {参加者.メンバー.メンバー履歴.戦闘力}\n"
+                参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
+                拠点放置人数 += 1
+        msg += "\n"
+
         msg += "[欠席者]:\n"
         for 参加者 in 参加者一覧:
             if 参加者.参加種別マスタ_id == '欠席':
                 msg += f"\t{参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.戦闘力} {参加者.メンバー.メンバー履歴.職マスタ_職名}\n"
                 欠席人数 += 1
 
-        合計申請人数 = 参加人数 + 遅刻人数 + 欠席人数
+        合計申請人数 = 参加人数 + 遅刻人数 + 拠点放置人数 + 欠席人数
         職別参加人数 = collections.Counter(参加職)
 
         msg += "\n"
-        msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 欠席: {欠席人数} 名\n"
+        msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 拠点放置: {拠点放置人数}, 欠席: {欠席人数} 名\n"
         msg += f"合計: {合計申請人数} 名\n"
         msg += "\n"
 

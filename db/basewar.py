@@ -4,7 +4,7 @@ import uuid
 
 import pytz
 import sqlalchemy
-from sqlalchemy import or_, cast, true, desc, asc
+from sqlalchemy import or_, cast, true, desc, asc, false
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship
@@ -20,6 +20,10 @@ Base.query = session.query_property()
 
 class BaseWarError(Exception):
     """拠点戦モデルが投げる例外の基底クラス"""
+
+
+class メンバーが見つからない(BaseWarError):
+    pass
 
 
 class 参加受付中の拠点戦がない(BaseWarError):
@@ -106,6 +110,13 @@ class BaseWar(Base):
         dt_native = datetime.combine(date, time())
         utc_date = tz_utc.localize(dt_native)
 
+        メンバー = session.query(cls.classes.メンバー).filter(
+            cls.classes.メンバー.user_id == str(user_id),
+            cls.classes.メンバー.脱退済 == false(),
+        ).one_or_none()
+        if メンバー is None:
+            raise メンバーが見つからない
+
         拠点戦 = session.query(cls.classes.拠点戦).filter(
             cls.classes.拠点戦.日付 == utc_date,
             cls.classes.拠点戦.参加申請受付可否 == true()
@@ -154,7 +165,8 @@ class BaseWar(Base):
             raise 参加受付中の拠点戦がない
 
         拠点戦参加 = session.query(cls.classes.拠点戦参加).filter(
-            cls.classes.拠点戦参加.拠点戦_日付 == utc_date
+            cls.classes.拠点戦参加.拠点戦_日付 == utc_date,
+            cls.classes.メンバー.脱退済 == false()
         ).join(
             cls.classes.メンバー
         ).join(

@@ -1,11 +1,16 @@
 import base64
 import logging
 import os
+import time
 import uuid
 
 from discord.ext import commands
 
 import bot_properties as bp
+
+os.environ["TZ"] = "UTC"
+time.tzset()
+print(time.tzname)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -33,6 +38,7 @@ bot.load_extension('cogs.BossSchedule')
 bot.load_extension('cogs.MemberStatus')
 bot.load_extension('cogs.Yomiage')
 bot.load_extension('cogs.BaseWar')
+bot.load_extension('cogs.JobMasterController')
 bot.run(bp.bot_token)
 
 #
