@@ -22,6 +22,7 @@ class BaseWar(commands.Cog):
         self.bot = bot
 
     @commands.command(name='拠点戦オープン')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦オープン(self, ctx, map_id=None, event_date=None):
         """拠点戦オープン {2020-03-05 形式の日付(default=当日)}"""
         if map_id is None:
@@ -64,6 +65,7 @@ class BaseWar(commands.Cog):
             await ctx.channel.send(f"マップID {map_id} が見つかりませんでした")
 
     @commands.command(name='拠点戦クローズ')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦クローズ(self, ctx, event_date=None):
         """拠点戦クローズ {2020-03-05 形式の日付(default=当日)}"""
         tz_tokyo = pytz.timezone('Asia/Tokyo')
@@ -83,6 +85,7 @@ class BaseWar(commands.Cog):
         return
 
     @commands.command(name='拠点戦')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦参加(self, ctx, 参加ステータス='', VCステータス='', event_date=None):
         """拠点戦 {参加,遅刻,欠席} {VC可,VC不可,聞き専} {拠点戦日(2020-01-01形式 default=当日)}"""
 
@@ -105,6 +108,7 @@ class BaseWar(commands.Cog):
             await ctx.channel.send("VC状況の指定は [ VC可, VC不可, 聞き専 ] のいずれかを選択してください")
 
     @commands.command(name='出欠確認')
+    @commands.has_role('攻殻機動隊')
     async def 拠点戦出欠確認(self, ctx, event_date=None):
         """出欠確認 {拠点戦日(2020-01-01形式 default=当日)}"""
         tz_tokyo = pytz.timezone('Asia/Tokyo')
