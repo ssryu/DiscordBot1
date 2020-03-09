@@ -38,6 +38,7 @@ bot.load_extension('cogs.BossSchedule')
 bot.load_extension('cogs.MemberStatus')
 bot.load_extension('cogs.Yomiage')
 bot.load_extension('cogs.BaseWar')
+bot.load_extension('cogs.JobMasterController')
 bot.run(bp.bot_token)
 
 #
