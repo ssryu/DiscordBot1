@@ -133,6 +133,20 @@ class Member(Base):
         return
 
     @classmethod
+    def 除隊(cls, session, user_id):
+        member = cls.UserIDでメンバーを取得(session, user_id)
+
+        member.脱退済 = True
+        session.add(member)
+        session.flush()
+
+        try:
+            session.commit()
+        except InvalidRequestError as e:
+            return
+        return
+
+    @classmethod
     def 登録(cls, session, user_id, 家門名, 戦闘力, 職名):
         history_id = uuid.uuid4()
 

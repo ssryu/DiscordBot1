@@ -114,6 +114,13 @@ class MemberStatus(commands.Cog):
         msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
 
+    @commands.command(name='除隊')
+    @commands.has_role('隊長')
+    async def 除隊(self, ctx, id):
+        self.データベース側の除隊処理(id)
+        await ctx.channel.send("aaaaaaa")
+        return
+
     def get_spreadsheet_service(self):
         credentials = self.get_credentials()
         service = googleapiclient.discovery.build('sheets', 'v4',
@@ -145,6 +152,10 @@ class MemberStatus(commands.Cog):
 
     def データベース側の職業変更(self, user_id, 職業名):
         Member.職業変更(session, user_id, 職業名)
+        return
+
+    def データベース側の除隊処理(self, user_id):
+        Member.除隊(session, user_id)
         return
 
     @commands.command(name='戦闘力推移')
