@@ -76,7 +76,42 @@ class MemberStatus(commands.Cog):
                                                         valueInputOption='USER_ENTERED',
                                                         body=body).execute()
         logging.info(result)
+
+        self.データベース側の職業変更(ctx.author.id, job_name)
+
         msg = f"{ctx.author.name} さんの職業を {job_name} に更新しました〜！"
+        await ctx.channel.send(msg)
+
+    @commands.command(name='戦闘力更新')
+    async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
+        """戦闘力更新 {戦闘力}"""
+        user_key = self.create_search_key(ctx.author.name, ctx.author.discriminator)
+        logger.info(user_key)
+
+        values = self.get_member_list()
+        status = [x for x in values if x[10] == user_key][0]
+        logger.info(values.index(status))
+        logger.info(values[26])
+
+        member_index = values.index(status)
+        update_values = [
+            [
+                cp
+            ]
+        ]
+        body = {
+            'values': update_values
+        }
+        cp_range_name = f"メンバー情報一覧!I{member_index + 1}"
+        service = self.get_spreadsheet_service()
+        result = service.spreadsheets().values().update(spreadsheetId=self.spreadsheet_id,
+                                                        range=cp_range_name,
+                                                        valueInputOption='USER_ENTERED',
+                                                        body=body).execute()
+
+        self.データベース側の戦闘力更新(ctx.author.id, cp)
+
+        msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
         await ctx.channel.send(msg)
 
     def get_spreadsheet_service(self):
@@ -106,6 +141,10 @@ class MemberStatus(commands.Cog):
 
     def データベース側の戦闘力更新(self, user_id, 戦闘力):
         Member.戦闘力更新(session, user_id, 戦闘力)
+        return
+
+    def データベース側の職業変更(self, user_id, 職業名):
+        Member.職業変更(session, user_id, 職業名)
         return
 
     @commands.command(name='戦闘力推移')
@@ -149,37 +188,7 @@ class MemberStatus(commands.Cog):
         os.remove(f"{graph_tmp_filename}.png")
         return ""
 
-    @commands.command(name='戦闘力更新')
-    async def my_combat_point(self, ctx, cp, *, member: discord.Member = None):
-        """戦闘力更新 {戦闘力}"""
-        user_key = self.create_search_key(ctx.author.name, ctx.author.discriminator)
-        logger.info(user_key)
 
-        values = self.get_member_list()
-        status = [x for x in values if x[10] == user_key][0]
-        logger.info(values.index(status))
-        logger.info(values[26])
-
-        member_index = values.index(status)
-        update_values = [
-            [
-                cp
-            ]
-        ]
-        body = {
-            'values': update_values
-        }
-        cp_range_name = f"メンバー情報一覧!I{member_index + 1}"
-        service = self.get_spreadsheet_service()
-        result = service.spreadsheets().values().update(spreadsheetId=self.spreadsheet_id,
-                                                        range=cp_range_name,
-                                                        valueInputOption='USER_ENTERED',
-                                                        body=body).execute()
-
-        self.データベース側の戦闘力更新(ctx.author.id, cp)
-
-        msg = f"{ctx.author.name} さんの戦闘力を {cp} に更新しました〜！"
-        await ctx.channel.send(msg)
 
     @staticmethod
     def get_credentials():
