@@ -196,12 +196,13 @@ class BaseWar(commands.Cog):
         msg = "```\n"
         msg += "[未回答]:\n"
         未回答者 = []
-        AllMember = Member.在籍中のメンバー全件取得(session)
-        for member in AllMember:
-            for 参加者 in 参加者一覧:
-                if 参加者.メンバー_user_id != member.user_id:
-                    未回答者.append(member.メンバー履歴.家門名)
-                    未回答人数 += 1
+        all_member = Member.在籍中のメンバー全件取得(session)
+        member_ids = dict([(member.user_id, member.メンバー履歴.家門名) for member in all_member])
+        参加者ID一覧 = [参加者.メンバー_user_id for 参加者 in 参加者一覧]
+        for id, name in member_ids.items():
+            if id not in 参加者ID一覧:
+                未回答者.append(name)
+                未回答人数 += 1
         msg += ', '.join(未回答者) + "\n"
         msg += "```"
         await ctx.channel.send(msg)
