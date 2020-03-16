@@ -178,8 +178,13 @@ class BaseWar(commands.Cog):
             if 参加者.参加種別マスタ_id == '欠席':
                 msg += f"\t{参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.戦闘力} {参加者.メンバー.メンバー履歴.職マスタ_職名}\n"
                 欠席人数 += 1
-        msg += "\n"
 
+        msg += "```"
+
+        # 一旦送信
+        await ctx.channel.send(msg)
+
+        msg = "```\n"
         AllMember = Member.在籍中のメンバー全件取得(session)
         msg += "[未回答]:\n"
         未回答者 = []
@@ -189,21 +194,20 @@ class BaseWar(commands.Cog):
                     未回答者.append(member.メンバー履歴.家門名)
                     未回答人数 += 1
         msg += ', '.join(未回答者)
-        
-        msg += "\n"
+        msg += "```"
 
+        # 一旦送信
+        await ctx.channel.send(msg)
+
+        msg = "```\n"
         合計申請人数 = 参加人数 + 遅刻人数 + 拠点放置人数 + 欠席人数
         職別参加人数 = collections.Counter(参加職)
-
-        msg += "\n"
         msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 拠点放置: {拠点放置人数}, 欠席: {欠席人数} 名\n"
         msg += f"回答合計: {合計申請人数} 名\n"
         msg += f"未回答: {未回答人数} 名\n"
         msg += "\n"
-
         for key, val in 職別参加人数.items():
             msg += f"{key}: {val} 名\n"
-
         msg += "```"
 
         await ctx.channel.send(msg)
