@@ -202,7 +202,7 @@ class BaseWar(commands.Cog):
                 if 参加者.メンバー_user_id != member.user_id:
                     未回答者.append(member.メンバー履歴.家門名)
                     未回答人数 += 1
-        msg += ', '.join(未回答者)
+        msg += ', '.join(未回答者) + "\n"
         msg += "```"
         await ctx.channel.send(msg)
 
@@ -211,6 +211,7 @@ class BaseWar(commands.Cog):
         職別参加人数 = collections.Counter(参加職)
         msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 拠点放置: {拠点放置人数}, 欠席: {欠席人数} 名\n"
         msg += f"回答合計: {合計申請人数} 名\n"
+        msg += f"\n"
         msg += f"未回答: {未回答人数} 名\n"
         msg += "\n"
         for key, val in 職別参加人数.items():
