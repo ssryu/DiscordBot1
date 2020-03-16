@@ -182,11 +182,15 @@ class BaseWar(commands.Cog):
 
         AllMember = Member.在籍中のメンバー全件取得(session)
         msg += "[未回答]:\n"
+        未回答者 = []
         for member in AllMember:
             for 参加者 in 参加者一覧:
                 if 参加者.メンバー_user_id != member.user_id:
-                    msg += f"\t{member.メンバー履歴.家門名}\n"
+                    未回答者.append(member.メンバー履歴.家門名)
                     未回答人数 += 1
+        msg += ', '.join(未回答者)
+        
+        msg += "\n"
 
         合計申請人数 = 参加人数 + 遅刻人数 + 拠点放置人数 + 欠席人数
         職別参加人数 = collections.Counter(参加職)
