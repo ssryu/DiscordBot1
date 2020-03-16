@@ -10,6 +10,7 @@ from discord.ext import commands
 
 from db.map import Map
 from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない, メンバーが見つからない
+from db.member import Member
 from db.session import session
 
 logger = logging.getLogger(__name__)
@@ -140,6 +141,7 @@ class BaseWar(commands.Cog):
         遅刻人数 = 0
         拠点放置人数 = 0
         欠席人数 = 0
+        未回答人数 = 0
 
         VC可人数 = 0
         VC不可人数 = 0
@@ -176,13 +178,23 @@ class BaseWar(commands.Cog):
             if 参加者.参加種別マスタ_id == '欠席':
                 msg += f"\t{参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.戦闘力} {参加者.メンバー.メンバー履歴.職マスタ_職名}\n"
                 欠席人数 += 1
+        msg += "\n"
+
+        AllMember = Member.在籍中のメンバー全件取得(session)
+        msg += "[未回答]:\n"
+        for member in AllMember:
+            for 参加者 in 参加者一覧:
+                if 参加者.メンバー_user_id != member.user_id:
+                    msg += f"\t{member.メンバー履歴.家門名}\n"
+                    未回答人数 += 1
 
         合計申請人数 = 参加人数 + 遅刻人数 + 拠点放置人数 + 欠席人数
         職別参加人数 = collections.Counter(参加職)
 
         msg += "\n"
         msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 拠点放置: {拠点放置人数}, 欠席: {欠席人数} 名\n"
-        msg += f"合計: {合計申請人数} 名\n"
+        msg += f"回答合計: {合計申請人数} 名\n"
+        msg += f"未回答: {未回答人数} 名\n"
         msg += "\n"
 
         for key, val in 職別参加人数.items():
