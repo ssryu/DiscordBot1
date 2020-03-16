@@ -61,6 +61,13 @@ class Member(Base):
         return member_history
 
     @classmethod
+    def 在籍中のメンバー全件取得(cls, session):
+        member = session.query(cls.classes.メンバー).filter(
+            cls.classes.メンバー.脱退済 == false()
+        ).all()
+        return member
+
+    @classmethod
     def 職業名で職を取得(cls, session, 職業名):
         job = session.query(cls.classes.職マスタ).filter(
             cls.classes.職マスタ.職名 == 職業名

@@ -10,6 +10,7 @@ from discord.ext import commands
 
 from db.map import Map
 from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない, メンバーが見つからない
+from db.member import Member
 from db.session import session
 
 logger = logging.getLogger(__name__)
@@ -131,15 +132,17 @@ class BaseWar(commands.Cog):
             return
 
         msg = "```\n"
-
         msg += f"{self.UTC日付を日本の日付に変換(拠点戦.日付)} {days[拠点戦.拠点マップ.曜日]}曜日\n"
         msg += f"{拠点戦.拠点マップ.等級}等級 {拠点戦.拠点マップ.マップマスタ.地域マスタ_collection[0].地域名}/{拠点戦.拠点マップ.マップマスタ.マップ名}\n"
         msg += "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
 
         参加人数 = 0
         遅刻人数 = 0
         拠点放置人数 = 0
         欠席人数 = 0
+        未回答人数 = 0
 
         VC可人数 = 0
         VC不可人数 = 0
@@ -147,6 +150,7 @@ class BaseWar(commands.Cog):
 
         参加職 = []
 
+        msg = "```\n"
         msg += "[参加者]:\n"
         for 参加者 in 参加者一覧:
             if 参加者.参加種別マスタ_id == '参加':
@@ -154,7 +158,10 @@ class BaseWar(commands.Cog):
                 参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
                 参加人数 += 1
         msg += "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
 
+        msg = "```\n"
         msg += "[遅刻者]:\n"
         for 参加者 in 参加者一覧:
             if 参加者.参加種別マスタ_id == '遅刻':
@@ -162,7 +169,10 @@ class BaseWar(commands.Cog):
                 参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
                 遅刻人数 += 1
         msg += "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
 
+        msg = "```\n"
         msg += "[拠点放置]:\n"
         for 参加者 in 参加者一覧:
             if 参加者.参加種別マスタ_id == '拠点放置':
@@ -170,24 +180,43 @@ class BaseWar(commands.Cog):
                 参加職.append(参加者.メンバー.メンバー履歴.職マスタ_職名)
                 拠点放置人数 += 1
         msg += "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
 
+        msg = "```\n"
         msg += "[欠席者]:\n"
         for 参加者 in 参加者一覧:
             if 参加者.参加種別マスタ_id == '欠席':
                 msg += f"\t{参加者.メンバー.メンバー履歴.家門名} {参加者.メンバー.メンバー履歴.戦闘力} {参加者.メンバー.メンバー履歴.職マスタ_職名}\n"
                 欠席人数 += 1
+        msg += "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
 
+        msg = "```\n"
+        msg += "[未回答]:\n"
+        未回答者 = []
+        all_member = Member.在籍中のメンバー全件取得(session)
+        member_ids = dict([(member.user_id, member.メンバー履歴.家門名) for member in all_member])
+        参加者ID一覧 = [参加者.メンバー_user_id for 参加者 in 参加者一覧]
+        for id, name in member_ids.items():
+            if id not in 参加者ID一覧:
+                未回答者.append(name)
+                未回答人数 += 1
+        msg += ', '.join(未回答者) + "\n"
+        msg += "```"
+        await ctx.channel.send(msg)
+
+        msg = "```\n"
         合計申請人数 = 参加人数 + 遅刻人数 + 拠点放置人数 + 欠席人数
         職別参加人数 = collections.Counter(参加職)
-
-        msg += "\n"
         msg += f"参加: {参加人数} 名, 遅刻: {遅刻人数} 名, 拠点放置: {拠点放置人数}, 欠席: {欠席人数} 名\n"
-        msg += f"合計: {合計申請人数} 名\n"
+        msg += f"回答合計: {合計申請人数} 名\n"
+        msg += f"\n"
+        msg += f"未回答: {未回答人数} 名\n"
         msg += "\n"
-
         for key, val in 職別参加人数.items():
             msg += f"{key}: {val} 名\n"
-
         msg += "```"
 
         await ctx.channel.send(msg)
