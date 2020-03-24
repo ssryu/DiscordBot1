@@ -22,6 +22,8 @@ class Yomiage(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.name_brake_time = '100ms'
+        self.rate = '120%'
         self.vc = None
         self.yomiage_channel_name = None
         self.play_queue = queue.Queue()
@@ -209,6 +211,20 @@ class Yomiage(commands.Cog):
         regex = re.compile(r"http\S+")
         return re.sub(regex, 'URL', input_text)
 
+    @commands.command(name='通常モード')
+    async def normal_speed_mode(self, ctx):
+        """ 通常モード """
+        self.name_brake_time = '100ms'
+        self.rate = '120%'
+        await ctx.channel.send(f'読み上げ速度を通常モードへ移行します！')
+
+    @commands.command(name='高速モード')
+    async def high_speed_mode(self, ctx):
+        """ 高速モード """
+        self.name_brake_time = '5ms'
+        self.rate = '140%'
+        await ctx.channel.send(f'読み上げ速度を高速モードへ移行します！')
+
     @commands.Cog.listener()
     async def on_message(self, ctx):
         # 自分自身の発言で反応しないように絶対必須
@@ -227,7 +243,7 @@ class Yomiage(commands.Cog):
         content = self.convert_replace_dictionary(ctx.content)
         content = self.replace_url(content)
 
-        input_text = f'<speak>{name}<break time="300ms"/>{content}</speak>'
+        input_text = f'<speak><prosody rate="{self.rate}">{name}</prosody><break time="{self.name_brake_time}"/><prosody rate="{self.rate}">{content}</prosody></speak>'
         logger.debug(input_text)
 
         response = self.create_voice(input_text)
