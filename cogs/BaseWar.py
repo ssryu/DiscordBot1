@@ -255,11 +255,11 @@ class BaseWar(commands.Cog):
         """拠点マップ {マップID}"""
         data = Map.マップIDで拠点情報を取得(session, id)
         if data is not None:
-            マップID = data.id
-            地域名 = data.地域マスタ_collection[0].地域名
-            マップ名 = data.マップ名
-            拠点曜日 = days[data.拠点マップ_collection[0].曜日]
-            拠点等級 = data.拠点マップ_collection[0].等級
+            マップID = data.マップマスタ_id
+            地域名 = data.マップマスタ.地域マスタ_collection[0].地域名
+            マップ名 = data.マップマスタ.マップ名
+            拠点曜日 = days[data.曜日]
+            拠点等級 = data.等級
             map_filename = f"{拠点曜日}_{拠点等級}_{マップ名}"
 
             file = discord.File(f"拠点戦マップ画像/{map_filename}.PNG", filename=f"map.png")
