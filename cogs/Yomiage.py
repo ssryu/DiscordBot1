@@ -28,6 +28,19 @@ class Yomiage(commands.Cog):
         self.yomiage_channel_name = None
         self.play_queue = queue.Queue()
 
+    @tasks.loop(seconds=10.0)
+    async def auto_disconnect(self):
+        members = self.vc.channel.members
+        users = [user for user in members if user != self.bot.user]
+        if len(users) <= 0:
+            await self.vc.disconnect()
+            self.vc = None
+            self.yomiage_channel_name = None
+            self.retry_play.stop()  # キューの消化を止める
+            self.clear_play_queue()  # キューの中身をクリアする
+            return self.auto_disconnect.stop()  # VCに人が居なくなったら自動切断する監視を停止
+        return
+
     @tasks.loop(seconds=1.0)
     async def retry_play(self):
         # 再生キューが空なら何もしない
@@ -64,12 +77,14 @@ class Yomiage(commands.Cog):
     @commands.command(name='タチコマァ！ついてこい！')
     async def join_voice_chat(self, ctx):
         """ VCにタチコマを呼び出す """
+        if ctx.author.voice is None:
+            # 呼び出し主がどのボイスチャンネルにも接続していない
+            return await ctx.channel.send('VCに接続してから呼んでね！')
 
-        # VCに接続していなければ接続する
-        if self.vc is None:
-            channel = ctx.author.voice.channel
+        channel = ctx.author.voice.channel
+
+        try:
             self.vc = await channel.connect(timeout=2.0, reconnect=True)
-
             # 挨拶メッセージを読み上げる
             self.play_voice('join_voice.m4a')
 
@@ -77,16 +92,20 @@ class Yomiage(commands.Cog):
             self.yomiage_channel_name = ctx.channel.name
 
             self.retry_play.start()
-            await ctx.channel.send('はーい！')
+            self.auto_disconnect.start()
+            return await ctx.channel.send('はーい！')
+
+        except asyncio.TimeoutError as e:
+            # 時間内に接続を確立できなかった
+            return await ctx.channel.send('接続がうまくいきませんでした！')
+
+        except discord.ClientException as e:
+            # すでに繋がっている
+            return await ctx.channel.send('すでに繋がってます！')
 
     @commands.command(name='ばいばい')
     async def leave_voice_chat(self, ctx):
         """ VCからタチコマを切断させる """
-        if self.vc is None:
-            # VoiceChannelに未接続の場合はメッセージを返すだけ
-            await ctx.channel.send('VCに繋いでないよっ！')
-            return
-
         # VoiceChannelに接続している場合は接続を切断し、メッセージを返す
         await self.vc.disconnect()
 
@@ -94,8 +113,8 @@ class Yomiage(commands.Cog):
         self.yomiage_channel_name = None
         self.retry_play.stop()  # キューの消化を止める
         self.clear_play_queue()  # キューの中身をクリアする
-
-        await ctx.channel.send('またねっ！')
+        self.auto_disconnect.stop()  # VCに人が居なくなったら自動切断する監視を停止
+        return await ctx.channel.send('またねっ！')
 
     def clear_play_queue(self):
         # 再生待ちを全てクリアする
