@@ -25,6 +25,7 @@ class Yomiage(commands.Cog):
         self.name_brake_time = '100ms'
         self.rate = '120%'
         self.vc = None
+        self.voice_channel = None
         self.yomiage_channel_name = None
         self.play_queue = queue.Queue()
 
@@ -41,6 +42,10 @@ class Yomiage(commands.Cog):
             return self.auto_disconnect.stop()  # VCに人が居なくなったら自動切断する監視を停止
         return
 
+    async def reconnect(self):
+        await self.vc.disconnect()
+        return await self.voice_channel.connect(timeout=2.0, reconnect=True)
+
     @tasks.loop(seconds=1.0)
     async def retry_play(self):
         # 再生キューが空なら何もしない
@@ -49,6 +54,8 @@ class Yomiage(commands.Cog):
 
         # VC入ってなければ何もしない
         if self.vc is None:
+            self.clear_play_queue()  # キューの中身をクリアする
+            self.play_queue.task_done()  #
             return
 
         filename, is_after_remove = self.play_queue.get()
@@ -65,8 +72,10 @@ class Yomiage(commands.Cog):
         except discord.ClientException as e:
             logger.info('retry...')
             logger.info(e)
+
             # 再度キューに乗せ直す
             self.play_queue.put((filename, is_after_remove))
+            await self.reconnect()
 
         self.play_queue.task_done()
 
@@ -82,6 +91,7 @@ class Yomiage(commands.Cog):
             return await ctx.channel.send('VCに接続してから呼んでね！')
 
         channel = ctx.author.voice.channel
+        self.voice_channel = channel
 
         try:
             self.vc = await channel.connect(timeout=2.0, reconnect=True)
