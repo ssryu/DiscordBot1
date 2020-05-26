@@ -13,9 +13,9 @@ services:
     env_file:
         - bot.env
     networks:
-      - discordbot-net
+        - discordbot-net
     depends_on:
-      - database
+        - database
 
   database:
     container_name: database
@@ -28,4 +28,4 @@ services:
         POSTGRES_USER: "tachikoma"
         POSTGRES_PASSWORD: "mysecretpassword"
     networks:
-      - discordbot-net
+        - discordbot-net
