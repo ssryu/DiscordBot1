@@ -136,6 +136,10 @@ class Member(Base):
 
         member.脱退済 = True
         session.add(member)
+
+        for resource in member.拠点戦資材_collection:
+            session.delete(resource)
+
         session.flush()
 
         try:
