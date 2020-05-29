@@ -15,6 +15,7 @@ plt.rcParams['font.family'] = 'IPAGothic'
 
 from db.session import session
 from db.member import Member, メンバーが見つからない, 職が見つからない
+from db.basewar_resources import BaseWarResources, メンバーが見つからない as Bwメンバーが見つからない
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +229,16 @@ class MemberStatus(commands.Cog):
 
         os.remove(f"{graph_tmp_filename}.png")
         return ""
+
+    @commands.command(name='資材')
+    async def reinforcement_resources(self, ctx, 生命の粉=0, 頑丈な原木=0, 黒い水晶の原石=0):
+        """資材 {生命の粉の数} {頑丈な原木の数} {黒い水晶の原石の数}"""
+        try:
+            BaseWarResources.全資材申告(session, ctx.author.id, 生命の粉, 頑丈な原木, 黒い水晶の原石)
+        except Bwメンバーが見つからない as e:
+            await ctx.channel.send("ユーザーが見つかりませんでした！")
+            return
+        await ctx.channel.send(f"{ctx.author.name} さんの資材状況 生命の粉: {生命の粉}, 頑丈な原木: {頑丈な原木}, 黒い水晶の原石: {黒い水晶の原石} で更新完了！")
 
     @staticmethod
     def get_credentials():

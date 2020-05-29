@@ -78,6 +78,10 @@ class BaseWar(Base):
         if 拠点戦 is None:
             raise 参加受付中の拠点戦がない
 
+        資材 = session.query(cls.classes.拠点戦資材).all()
+        for resource in 資材:
+            session.delete(resource)
+
         basewar = cls.classes.拠点戦(
             日付=拠点戦.日付,
             拠点マップ_マップマスタ_id=拠点戦.拠点マップ_マップマスタ_id,

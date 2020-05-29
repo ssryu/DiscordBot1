@@ -11,6 +11,7 @@ from discord.ext import commands
 from db.map import Map
 from db.basewar import BaseWar as BaseWarModel, 参加受付中の拠点戦がない, 参加種別が不正, 参加VC状況が不正, 参加者がいない, メンバーが見つからない
 from db.member import Member
+from db.basewar_resources import BaseWarResources
 from db.session import session
 
 logger = logging.getLogger(__name__)
@@ -271,6 +272,35 @@ class BaseWar(commands.Cog):
             await ctx.channel.send(file=file, embed=embed)
         else:
             await ctx.channel.send("みつかりませんでした！")
+
+    @commands.command(name='資材確認')
+    @commands.has_role('攻殻機動隊')
+    async def show_base_resource(self, ctx):
+        members = Member.在籍中のメンバー全件取得(session)
+
+        msg = "```\n"
+        for member in members:
+            if len(member.拠点戦資材_collection) <= 0:
+                msg += f"{member.メンバー履歴.家門名}  0,  0,  0\n"
+            else:
+                resources = member.拠点戦資材_collection[0]
+                生命の粉 = resources.生命の粉
+                頑丈な原木 = resources.頑丈な原木
+                黒い水晶の原石 = resources.黒い水晶の原石
+                msg += f"{member.メンバー履歴.家門名}  {生命の粉},  {頑丈な原木},  {黒い水晶の原石}\n"
+        msg += "```"
+        await ctx.channel.send(msg)
+
+        basewar_resources = BaseWarResources.資材集計(session)
+        生命の粉 = basewar_resources[0]
+        頑丈な原木 = basewar_resources[1]
+        黒い水晶の原石 = basewar_resources[2]
+
+        msg = "```\n"
+        msg += f"生命の粉: {生命の粉}, 頑丈な原木: {頑丈な原木}, 黒い水晶の原石: {黒い水晶の原石}\n"
+        msg += "```"
+
+        await ctx.channel.send(msg)
 
 def setup(bot):
     bot.add_cog(BaseWar(bot))
