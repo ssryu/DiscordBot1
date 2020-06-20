@@ -128,7 +128,7 @@ class ExchangeTimer(commands.Cog):
         msg += f"現在の取引所基準時刻は {std_time} です\n"
         msg += f"[出品時刻]\n"
         msg += f"次: {next_open_dt_str}\n"
-        msg += f"次の次: {next_open_dt_str}\n"
+        msg += f"次の次: {next_next_open_dt_str}\n"
         msg += "```"
         await ctx.send(msg)
 
