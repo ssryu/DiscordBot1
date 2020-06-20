@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime, timedelta
 from discord.ext import tasks, commands
 
-from db.exchange_std import ExchangeStandard
+from db.exchange_std import ExchangeStandard, 基準時刻が見つからない
 from db.session import session
 from collections import deque
 
@@ -18,7 +18,7 @@ class ExchangeTimer(commands.Cog):
     async def チェック(self, ctx):
         try:
             std_time = ExchangeStandard.最新の取引所基準時刻を取得(session)
-        except ExchangeStandard.基準時刻が見つからない as e:
+        except 基準時刻が見つからない as e:
             return await ctx.send(f'基準時刻の設定がありません')
 
         tokyo = pytz.timezone('Asia/Tokyo')
@@ -80,7 +80,7 @@ class ExchangeTimer(commands.Cog):
     async def 次の出品時間を発言(self, ctx):
         try:
             std_time = ExchangeStandard.最新の取引所基準時刻を取得(session)
-        except ExchangeStandard.基準時刻が見つからない as e:
+        except 基準時刻が見つからない as e:
             return await ctx.send(f'基準時刻の設定がありません')
 
         tokyo = pytz.timezone('Asia/Tokyo')
@@ -149,6 +149,11 @@ class ExchangeTimer(commands.Cog):
 
     @commands.command(name='取引所登録')
     async def 取引所登録(self, ctx, item_name, minutes):
+        try:
+            std_time = ExchangeStandard.最新の取引所基準時刻を取得(session)
+        except 基準時刻が見つからない as e:
+            return await ctx.send(f'基準時刻の設定がありません')
+
         tokyo = pytz.timezone('Asia/Tokyo')
         now = datetime.now(tz=pytz.utc).astimezone(tokyo)
 
