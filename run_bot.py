@@ -40,6 +40,7 @@ bot.load_extension('cogs.Yomiage')
 bot.load_extension('cogs.BaseWar')
 bot.load_extension('cogs.JobMasterController')
 bot.load_extension('cogs.ExchangeTimer')
+bot.load_extension('cogs.Gurupon')
 bot.run(bp.bot_token)
 
 #
