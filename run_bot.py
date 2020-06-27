@@ -39,6 +39,7 @@ bot.load_extension('cogs.MemberStatus')
 bot.load_extension('cogs.Yomiage')
 bot.load_extension('cogs.BaseWar')
 bot.load_extension('cogs.JobMasterController')
+bot.load_extension('cogs.ExchangeTimer')
 bot.run(bp.bot_token)
 
 #
