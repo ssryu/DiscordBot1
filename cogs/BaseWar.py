@@ -3,6 +3,9 @@ import collections
 import unicodedata
 from datetime import datetime, date, timedelta, timezone, time
 import logging
+import os
+import googleapiclient.discovery
+from google.oauth2 import service_account
 
 import discord
 import pytz
@@ -22,6 +25,23 @@ days = ['日', '月', '火', '水', '木', '金', '土']
 class BaseWar(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.spreadsheet_id = '1HK96UyIEEiX3Q67yMzpA-bc5eLi0jHm3pgJSTXFnqkY'
+
+    @staticmethod
+    def get_credentials():
+        scopes = [
+            'https://www.googleapis.com/auth/spreadsheets'
+        ]
+        cred_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        credentials = service_account.Credentials.from_service_account_file(cred_path, scopes=scopes)
+        return credentials
+
+    def get_spreadsheet_service(self):
+        credentials = self.get_credentials()
+        service = googleapiclient.discovery.build('sheets', 'v4',
+                                                  credentials=credentials,
+                                                  cache_discovery=False)
+        return service
 
     @commands.command(name='拠点戦オープン')
     @commands.has_role('攻殻機動隊')
@@ -221,6 +241,35 @@ class BaseWar(commands.Cog):
         msg += "```"
 
         await ctx.channel.send(msg)
+
+    @commands.command(name='班確認')
+    @commands.has_role('攻殻機動隊')
+    async def 拠点戦班確認(self, ctx, event_date=None):
+        range_name: str = '班ビュー!A:D'
+        service = self.get_spreadsheet_service()
+        sheet = service.spreadsheets()
+
+        result = sheet.values().get(spreadsheetId=self.spreadsheet_id,
+                                    majorDimension='ROWS',
+                                    range=range_name).execute()
+
+        values = result.get('values', [])
+
+        msg = "```\n"
+
+        for row in values:
+            班 = row[0]
+            家門名 = row[1]
+            戦闘力 = row[2]
+            職 = row[3]
+
+            msg += f"{班}, {家門名}, {戦闘力}, {職}\n"
+
+        msg += "```\n"
+
+        return await ctx.channel.send(msg)
+        # return values[0]
+
 
     @staticmethod
     def UTC日付を日本の日付に変換(x):
